@@ -1,33 +1,88 @@
 import { randomUUID } from 'crypto';
 import { getMassSchedule, resolveDayOfWeek } from './massScheduleTool.js';
-import { formatMassScheduleReply } from './formatters.js';
-import { routeMassScheduleIntent, getOutOfScopeReply } from './intentRouter.js';
+import { getUpcomingEvents } from './eventsTool.js';
+import { getPrayers } from './prayersTool.js';
+import { getSermons } from './sermonsTool.js';
+import { getAnnouncements } from './announcementsTool.js';
+import { formatToolResult } from './formatters.js';
+import {
+  routeIntent,
+  getOutOfScopeReply,
+  buildRuleBasedReply,
+  buildRuleBasedSources,
+} from './intentRouter.js';
 import {
   buildSystemPrompt,
   chatWithTools,
   isOllamaAvailable,
-  MASS_SCHEDULE_TOOL,
+  CHAT_TOOLS,
 } from './ollamaClient.js';
 
-const MAX_TOOL_ITERATIONS = 4;
+const MAX_TOOL_ITERATIONS = 6;
 
 async function executeTool(name, args = {}) {
-  if (name !== 'getMassSchedule') {
-    throw new Error(`Unknown tool: ${name}`);
+  switch (name) {
+    case 'getMassSchedule': {
+      const schedules = await getMassSchedule(args);
+      const dayOfWeek =
+        resolveDayOfWeek(args.dayOfWeek) || schedules[0]?.dayOfWeek || args.dayOfWeek;
+
+      return {
+        tool: name,
+        result: { schedules, dayOfWeek },
+        sources: schedules.map((schedule) => ({
+          type: 'mass-schedule',
+          id: schedule.id,
+        })),
+      };
+    }
+    case 'getUpcomingEvents': {
+      const events = await getUpcomingEvents(args);
+      return {
+        tool: name,
+        result: { events },
+        sources: events.map((event) => ({
+          type: 'event',
+          id: event.id,
+        })),
+      };
+    }
+    case 'getPrayers': {
+      const { prayers, category: resolvedCategory } = await getPrayers(args);
+      return {
+        tool: name,
+        result: { prayers, category: resolvedCategory ?? args.category },
+        sources: prayers.map((prayer) => ({
+          type: 'prayer',
+          id: prayer.id,
+        })),
+      };
+    }
+    case 'getSermons': {
+      const sermons = await getSermons(args);
+      return {
+        tool: name,
+        result: { sermons, type: args.type },
+        sources: sermons.map((sermon) => ({
+          type: 'sermon',
+          id: sermon.id,
+        })),
+      };
+    }
+    case 'getAnnouncements': {
+      const announcements = await getAnnouncements(args);
+      return {
+        tool: name,
+        result: { announcements },
+        sources: announcements.map((announcement) => ({
+          type: 'announcement',
+          id: announcement.id,
+        })),
+      };
+    }
+    default:
+      throw new Error(`Unknown tool: ${name}`);
   }
-
-  const schedules = await getMassSchedule(args);
-  const dayOfWeek =
-    resolveDayOfWeek(args.dayOfWeek) || schedules[0]?.dayOfWeek || args.dayOfWeek;
-
-  return {
-    schedules,
-    dayOfWeek,
-    sources: schedules.map((schedule) => ({
-      type: 'mass-schedule',
-      id: schedule.id,
-    })),
-  };
 }
 
 function buildHistoryMessages(history = []) {
@@ -48,12 +103,12 @@ async function runOllamaChat(message, history = []) {
   ];
 
   const collectedSources = [];
-  let lastDayOfWeek;
+  let lastToolExecution;
 
   for (let iteration = 0; iteration < MAX_TOOL_ITERATIONS; iteration += 1) {
     const assistantMessage = await chatWithTools({
       messages,
-      tools: [MASS_SCHEDULE_TOOL],
+      tools: CHAT_TOOLS,
     });
 
     if (!assistantMessage) {
@@ -81,34 +136,35 @@ async function runOllamaChat(message, history = []) {
         toolArgs = {};
       }
 
-      const toolResult = await executeTool(toolName, toolArgs);
-      lastDayOfWeek = toolResult.dayOfWeek;
-      collectedSources.push(...toolResult.sources);
+      const toolExecution = await executeTool(toolName, toolArgs);
+      lastToolExecution = toolExecution;
+      collectedSources.push(...toolExecution.sources);
 
       messages.push({
         role: 'tool',
         name: toolName,
-        content: JSON.stringify({
-          schedules: toolResult.schedules,
-          dayOfWeek: toolResult.dayOfWeek,
-        }),
+        content: JSON.stringify(toolExecution.result),
       });
     }
   }
 
-  const fallbackSchedules = lastDayOfWeek
-    ? await getMassSchedule({ dayOfWeek: lastDayOfWeek })
-    : [];
+  if (lastToolExecution) {
+    return {
+      reply: await formatToolResult(lastToolExecution.tool, lastToolExecution.result),
+      sources: collectedSources,
+      mode: 'ollama-fallback',
+    };
+  }
 
   return {
-    reply: formatMassScheduleReply(fallbackSchedules, { dayOfWeek: lastDayOfWeek }),
+    reply: getOutOfScopeReply(),
     sources: collectedSources,
     mode: 'ollama-fallback',
   };
 }
 
 async function runRuleBasedChat(message) {
-  const routed = await routeMassScheduleIntent(message);
+  const routed = await routeIntent(message);
 
   if (!routed) {
     return {
@@ -119,19 +175,14 @@ async function runRuleBasedChat(message) {
   }
 
   return {
-    reply: formatMassScheduleReply(routed.schedules, {
-      dayOfWeek: routed.dayOfWeek || routed.args.dayOfWeek,
-    }),
-    sources: routed.schedules.map((schedule) => ({
-      type: 'mass-schedule',
-      id: schedule.id,
-    })),
+    reply: await buildRuleBasedReply(routed),
+    sources: buildRuleBasedSources(routed),
     mode: 'rules',
   };
 }
 
 /**
- * Process a parish chat message (Phase 1: Mass schedule only).
+ * Process a parish chat message.
  */
 export async function processChatMessage({ message, history = [], conversationId }) {
   const trimmedMessage = message.trim();

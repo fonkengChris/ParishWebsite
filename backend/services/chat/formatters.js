@@ -1,3 +1,5 @@
+import { summarizeForChat } from './textSummarizer.js';
+
 const DAY_LABELS = {
   sunday: 'Sunday',
   monday: 'Monday',
@@ -35,6 +37,29 @@ function formatTime(time) {
   }
 
   return trimmed;
+}
+
+function formatDate(dateValue) {
+  return new Date(dateValue).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+function indentSummary(summary) {
+  return summary
+    .split('\n')
+    .map((line) => `  ${line}`)
+    .join('\n');
+}
+
+function truncateText(text, maxLength = 400) {
+  if (!text || text.length <= maxLength) {
+    return text || '';
+  }
+  return `${text.slice(0, maxLength).trim()}...`;
 }
 
 /**
@@ -75,4 +100,155 @@ export function formatMassScheduleReply(schedules, { dayOfWeek } = {}) {
   lines.push('Visit the Mass Times page on our website for the complete weekly schedule.');
 
   return lines.join('\n').trim();
+}
+
+export async function formatEventsReply(events) {
+  if (!events.length) {
+    return 'There are no upcoming events scheduled right now. Check the Events page for updates.';
+  }
+
+  const lines = ['Here are the upcoming parish events:\n'];
+
+  for (const event of events) {
+    const dateLabel = formatDate(event.startDate);
+    const location = event.location ? ` at ${event.location}` : '';
+    lines.push(`• ${event.title} — ${dateLabel}${location}`);
+
+    if (event.description) {
+      const summary = await summarizeForChat(event.description, {
+        title: event.title,
+        kind: 'event',
+      });
+      if (summary) {
+        lines.push(indentSummary(summary));
+      }
+    }
+
+    lines.push('');
+  }
+
+  lines.push('Visit the Events page on our website for full details.');
+
+  return lines.join('\n').trim();
+}
+
+export function formatPrayersReply(prayers, { category } = {}) {
+  const categoryLabels = {
+    morning: 'Morning Prayers',
+    evening: 'Evening Prayers',
+    devotions: 'Devotions',
+    general: 'General Prayers',
+    marian: 'Marian Prayers',
+    special: 'Special Prayers',
+    saint: 'Saints Prayers',
+    other: 'Other',
+  };
+
+  const categoryLabel = category ? categoryLabels[category] || category : '';
+
+  if (!prayers.length) {
+    return categoryLabel
+      ? `I couldn't find any ${categoryLabel.toLowerCase()}. Try the Prayers page or ask about another category like morning, evening, or Marian prayers.`
+      : `I couldn't find any matching prayers. Try the Prayers page or ask about a category like morning, evening, Marian, or special prayers.`;
+  }
+
+  const lines = [
+    categoryLabel
+      ? `Here ${prayers.length === 1 ? 'is a prayer' : 'are some prayers'} from ${categoryLabel}:\n`
+      : `Here ${prayers.length === 1 ? 'is a prayer' : 'are some prayers'}:\n`,
+  ];
+
+  for (const prayer of prayers) {
+    const prayerCategory = prayer.category
+      ? ` (${categoryLabels[prayer.category] || prayer.category})`
+      : '';
+    lines.push(`${prayer.title}${prayerCategory}`);
+    lines.push(truncateText(prayer.content, 500));
+    lines.push('');
+  }
+
+  lines.push('Visit the Prayers page for the full collection.');
+
+  return lines.join('\n').trim();
+}
+
+export function formatSermonsReply(sermons, { type } = {}) {
+  const typeLabel =
+    type === 'catechisis' ? 'catechism sessions' : type === 'sermon' ? 'sermons' : 'sermons and homilies';
+
+  if (!sermons.length) {
+    return `I couldn't find any recent ${typeLabel}. Check the Sermons page for the archive.`;
+  }
+
+  const lines = [`Here are recent ${typeLabel}:\n`];
+
+  for (const sermon of sermons) {
+    const dateLabel = formatDate(sermon.date);
+    const preacher = sermon.preacher ? ` by ${sermon.preacher}` : '';
+    lines.push(`• ${sermon.title} — ${dateLabel}${preacher}`);
+
+    if (sermon.reading) {
+      lines.push(`  Reading: ${sermon.reading}`);
+    }
+
+    if (sermon.content) {
+      lines.push(`  ${truncateText(sermon.content, 250)}`);
+    }
+
+    if (sermon.audioUrl || sermon.videoUrl) {
+      lines.push('  Audio/video is available on the Sermons page.');
+    }
+
+    lines.push('');
+  }
+
+  lines.push('Visit the Sermons page for the full archive.');
+
+  return lines.join('\n').trim();
+}
+
+export async function formatAnnouncementsReply(announcements) {
+  if (!announcements.length) {
+    return 'There are no recent announcements at the moment. Check the Announcements page for updates.';
+  }
+
+  const lines = ['Here are the latest parish announcements:\n'];
+
+  for (const announcement of announcements) {
+    const dateLabel = formatDate(announcement.date);
+    lines.push(`• ${announcement.title} — ${dateLabel}`);
+
+    if (announcement.content) {
+      const summary = await summarizeForChat(announcement.content, {
+        title: announcement.title,
+        kind: 'announcement',
+      });
+      if (summary) {
+        lines.push(indentSummary(summary));
+      }
+    }
+
+    lines.push('');
+  }
+
+  lines.push('Visit the Announcements page for more news.');
+
+  return lines.join('\n').trim();
+}
+
+export async function formatToolResult(toolName, result) {
+  switch (toolName) {
+    case 'getMassSchedule':
+      return formatMassScheduleReply(result.schedules, { dayOfWeek: result.dayOfWeek });
+    case 'getUpcomingEvents':
+      return formatEventsReply(result.events);
+    case 'getPrayers':
+      return formatPrayersReply(result.prayers, { category: result.category });
+    case 'getSermons':
+      return formatSermonsReply(result.sermons, { type: result.type });
+    case 'getAnnouncements':
+      return formatAnnouncementsReply(result.announcements);
+    default:
+      return 'I found some information, but I could not format the response.';
+  }
 }

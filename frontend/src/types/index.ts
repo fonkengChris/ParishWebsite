@@ -191,7 +191,7 @@ export interface ChatMessage {
 }
 
 export interface ChatSource {
-  type: 'mass-schedule';
+  type: 'mass-schedule' | 'event' | 'prayer' | 'sermon' | 'announcement';
   id?: string;
 }
 

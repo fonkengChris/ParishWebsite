@@ -5,12 +5,13 @@ import type { ChatMessage } from '../types';
 
 const QUICK_PROMPTS = [
   'When is Mass on Sunday?',
-  'What are today\'s Mass times?',
-  'When is confession?',
+  'What events are coming up?',
+  'Share a morning prayer',
+  'Latest parish announcement',
 ];
 
 const WELCOME_MESSAGE =
-  'Hello! I can help you find Mass times and weekly service schedules. Ask me about Mass, confession, or adoration.';
+  'Hello! I can help with Mass times, upcoming events, prayers, sermons, and parish announcements. What would you like to know?';
 
 function createMessage(role: ChatMessage['role'], content: string): ChatMessage {
   return { role, content };
@@ -92,7 +93,7 @@ export default function Chatbot() {
           <div className="bg-gradient-to-r from-primary-600 to-primary-700 text-white px-4 py-3 flex items-center justify-between">
             <div>
               <h2 className="font-semibold text-lg">Parish Assistant</h2>
-              <p className="text-primary-100 text-sm">Mass times & schedules</p>
+              <p className="text-primary-100 text-sm">Mass, events, prayers & more</p>
             </div>
             <button
               type="button"
@@ -163,7 +164,7 @@ export default function Chatbot() {
                 type="text"
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
-                placeholder="Ask about Mass times..."
+                placeholder="Ask about Mass, events, prayers..."
                 disabled={loading}
                 className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                 aria-label="Chat message"
@@ -178,10 +179,13 @@ export default function Chatbot() {
             </form>
 
             <p className="mt-2 text-xs text-gray-500 text-center">
-              See full schedule on{' '}
-              <Link to="/mass-schedule" className="text-primary-600 hover:underline">
-                Mass Times
-              </Link>
+              <Link to="/mass-schedule" className="text-primary-600 hover:underline">Mass Times</Link>
+              {' · '}
+              <Link to="/events" className="text-primary-600 hover:underline">Events</Link>
+              {' · '}
+              <Link to="/prayers" className="text-primary-600 hover:underline">Prayers</Link>
+              {' · '}
+              <Link to="/sermons" className="text-primary-600 hover:underline">Sermons</Link>
             </p>
           </div>
         </div>
