@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
+  
+  /* Default primary colors (will be overridden by ThemeProvider) */
+  --color-primary-50: #f0f9ff;
+  --color-primary-100: #e0f2fe;
+  --color-primary-200: #bae6fd;
+  --color-primary-300: #7dd3fc;
+  --color-primary-400: #38bdf8;
+  --color-primary-500: #0ea5e9;
+  --color-primary-600: #0284c7;
+  --color-primary-700: #0369a1;
+  --color-primary-800: #075985;
+  --color-primary-900: #0c4a6e;
+  
+  /* Typography variables (will be overridden by ThemeProvider based on theme) */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  --font-size-xs: 0.75rem;      /* 12px */
+  --font-size-sm: 0.875rem;     /* 14px */
+  --font-size-base: 1rem;       /* 16px */
+  --font-size-lg: 1.125rem;     /* 18px */
+  --font-size-xl: 1.25rem;      /* 20px */
+  --font-size-2xl: 1.5rem;      /* 24px */
+  --font-size-3xl: 1.875rem;    /* 30px */
+  --font-size-4xl: 2.25rem;     /* 36px */
+  
+  /* Text contrast colors for better readability */
+  --text-on-light: var(--color-primary-900);  /* Dark text on light backgrounds */
+  --text-on-dark: #ffffff;                     /* White text on dark backgrounds */
+  --text-on-medium: var(--color-primary-800);  /* Medium-dark text on medium backgrounds */
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Utility classes for better contrast and typography */
+@layer utilities {
+  /* Text on light backgrounds - use darkest shade for maximum contrast */
+  .text-primary-on-light {
+    color: var(--text-on-light);
+    font-weight: var(--font-weight-semibold);
+  }
+  
+  /* Text on medium backgrounds */
+  .text-primary-on-medium {
+    color: var(--text-on-medium);
+    font-weight: var(--font-weight-medium);
+  }
+  
+  /* Text on dark backgrounds - use white */
+  .text-primary-on-dark {
+    color: var(--text-on-dark);
+    font-weight: var(--font-weight-medium);
+  }
+  
+  /* Enhanced readability for body text */
+  .text-readable {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.7;
+    color: #1f2937; /* Dark gray for body text */
+  }
+  
+  /* Enhanced readability for headings */
+  .heading-readable {
+    font-weight: var(--font-weight-bold);
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+  }
+  
+  /* Better contrast for links */
+  .link-primary {
+    color: var(--color-primary-700);
+    font-weight: var(--font-weight-semibold);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  
+  .link-primary:hover {
+    color: var(--color-primary-900);
+    text-decoration-thickness: 2px;
+  }
+  
+  /* Button with proper contrast */
+  .btn-primary {
+    background-color: var(--color-primary-600);
+    color: var(--text-on-dark);
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-base);
+  }
+  
+  .btn-primary:hover {
+    background-color: var(--color-primary-700);
+  }
+  
+  /* Button outline variant */
+  .btn-primary-outline {
+    background-color: transparent;
+    border: 2px solid var(--color-primary-600);
+    color: var(--color-primary-700);
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-base);
+  }
+  
+  .btn-primary-outline:hover {
+    background-color: var(--color-primary-50);
+    border-color: var(--color-primary-700);
+    color: var(--color-primary-900);
+  }
+  
+  /* Navbar logo alignment - ensures consistent alignment across browsers */
+  .navbar-logo-container {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem; /* gap-2.5 */
+    flex-shrink: 0;
+    min-width: 0; /* Allows flex item to shrink below content size if needed */
+  }
+  
+  .navbar-logo-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.2em;
+    line-height: 1;
+    vertical-align: middle;
+  }
+  
+  .navbar-logo-text {
+    line-height: 1.25; /* leading-tight */
+    display: inline-block;
+    white-space: nowrap;
+    flex-shrink: 0; /* Prevents the text from shrinking */
+  }
+  
+  /* Select dropdown arrow padding - adds space for the dropdown arrow */
+  select {
+    padding-right: 2.5rem !important; /* Extra padding for dropdown arrow */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23334155' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1em 1em;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+  }
+  
+  /* Ensure select elements have proper padding on the right */
+  select:not([multiple]) {
+    padding-right: 2.5rem;
+  }
+}
+
