@@ -16,6 +16,7 @@ import contactRoutes from '../routes/contact.js';
 import userRoutes from '../routes/users.js';
 import saintsRoutes from '../routes/saints.js';
 import donationRoutes from '../routes/donations.js';
+import chatRoutes from '../routes/chat.js';
 
 export const setupRoutes = (app) => {
   // Health check endpoint
@@ -45,6 +46,7 @@ export const setupRoutes = (app) => {
   app.use('/api/users', userRoutes);
   app.use('/api/saints', saintsRoutes);
   app.use('/api/donations', donationRoutes);
+  app.use('/api/chat', chatRoutes);
 
   // 404 handler for undefined routes
   app.use('*', (req, res) => {

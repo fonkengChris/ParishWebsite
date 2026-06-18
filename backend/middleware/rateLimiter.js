@@ -30,3 +30,17 @@ export const apiRateLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+/**
+ * Rate limiter for chat endpoint
+ * Limits to 30 messages per 15 minutes per IP
+ */
+export const chatRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: {
+    message: 'Too many chat messages from this IP, please try again in a few minutes.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+

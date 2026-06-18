@@ -99,6 +99,20 @@ export const schemas = {
   // ID parameter validation
   idParam: Joi.object({
     id: Joi.string().hex().length(24).required()
-  })
+  }),
+
+  chatMessage: Joi.object({
+    message: Joi.string().trim().min(1).max(1000).required(),
+    conversationId: Joi.string().uuid().optional(),
+    history: Joi.array()
+      .items(
+        Joi.object({
+          role: Joi.string().valid('user', 'assistant').required(),
+          content: Joi.string().trim().min(1).max(2000).required(),
+        })
+      )
+      .max(10)
+      .optional(),
+  }),
 };
 
