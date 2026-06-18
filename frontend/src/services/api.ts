@@ -13,7 +13,9 @@ import type {
   AuthResponse,
   SaintDay,
   SaintsResponse,
-  Donation
+  Donation,
+  ChatRequest,
+  ChatResponse,
 } from '../types';
 
 // Normalize baseURL - trim spaces and ensure proper format
@@ -698,6 +700,14 @@ export interface ContactResponse {
 export const contactAPI = {
   submit: async (formData: ContactFormData): Promise<ContactResponse> => {
     const { data } = await api.post<ContactResponse>('/contact', formData);
+    return data;
+  },
+};
+
+// Chat API
+export const chatAPI = {
+  sendMessage: async (payload: ChatRequest): Promise<ChatResponse> => {
+    const { data } = await api.post<ChatResponse>('/chat', payload);
     return data;
   },
 };

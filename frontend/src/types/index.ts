@@ -184,3 +184,25 @@ export interface Donation {
   createdAt?: string;
   updatedAt?: string;
 }
+
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface ChatSource {
+  type: 'mass-schedule';
+  id?: string;
+}
+
+export interface ChatRequest {
+  message: string;
+  conversationId?: string;
+  history?: ChatMessage[];
+}
+
+export interface ChatResponse {
+  reply: string;
+  sources?: ChatSource[];
+  conversationId?: string;
+}
