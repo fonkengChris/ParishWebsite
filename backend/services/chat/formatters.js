@@ -172,7 +172,7 @@ export function formatPrayersReply(prayers, { category } = {}) {
   return lines.join('\n').trim();
 }
 
-export function formatSermonsReply(sermons, { type } = {}) {
+export async function formatSermonsReply(sermons, { type } = {}) {
   const typeLabel =
     type === 'catechisis' ? 'catechism sessions' : type === 'sermon' ? 'sermons' : 'sermons and homilies';
 
@@ -185,14 +185,21 @@ export function formatSermonsReply(sermons, { type } = {}) {
   for (const sermon of sermons) {
     const dateLabel = formatDate(sermon.date);
     const preacher = sermon.preacher ? ` by ${sermon.preacher}` : '';
-    lines.push(`• ${sermon.title} — ${dateLabel}${preacher}`);
+    const sessionLabel = sermon.type === 'catechisis' ? 'Catechism' : 'Sermon';
+    lines.push(`• ${sermon.title} — ${dateLabel}${preacher} (${sessionLabel})`);
 
     if (sermon.reading) {
       lines.push(`  Reading: ${sermon.reading}`);
     }
 
     if (sermon.content) {
-      lines.push(`  ${truncateText(sermon.content, 250)}`);
+      const summary = await summarizeForChat(sermon.content, {
+        title: sermon.title,
+        kind: sermon.type === 'catechisis' ? 'catechisis' : 'sermon',
+      });
+      if (summary) {
+        lines.push(indentSummary(summary));
+      }
     }
 
     if (sermon.audioUrl || sermon.videoUrl) {

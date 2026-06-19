@@ -2,8 +2,37 @@ import axios from 'axios';
 import { getOllamaConfig, isOllamaAvailable } from './ollamaClient.js';
 
 const SUMMARY_LENGTH_THRESHOLD = 120;
-const PRIORITY_PATTERN =
-  /\b(meeting|mass|event|invite|invited|held|held at|at|on|from|until|register|contact|all|everyone|must|please|will be|shall be|required|attend|join|celebration|feast)\b/i;
+const PRIORITY_PATTERNS = {
+  default:
+    /\b(meeting|mass|event|invite|invited|held|held at|at|on|from|until|register|contact|all|everyone|must|please|will be|shall be|required|attend|join|celebration|feast)\b/i,
+  sermon:
+    /\b(god|christ|jesus|gospel|scripture|faith|love|call|teach|lesson|sin|grace|mercy|church|homily|message|theme|brothers|sisters|today|lord)\b/i,
+  catechisis:
+    /\b(catechism|teaching|learn|faith|church|doctrine|sacrament|scripture|lesson|question|answer|children|youth|church)\b/i,
+};
+
+const KIND_CONFIG = {
+  event: {
+    label: 'Event',
+    prompt:
+      'Summarize this parish event in 1-2 short bullet points with only the main facts: what is happening, when, where, who should attend, and any action needed. Maximum 30 words per bullet. Do not add an introduction or closing sentence.',
+  },
+  announcement: {
+    label: 'Announcement',
+    prompt:
+      'Summarize this parish announcement in 1-2 short bullet points with only the main facts: what is happening, when, where, who is involved, and any action needed. Maximum 30 words per bullet. Do not add an introduction or closing sentence.',
+  },
+  sermon: {
+    label: 'Sermon/Homily',
+    prompt:
+      'Summarize this homily in 1-2 short bullet points with the main message or theme and any key scripture reference. Maximum 30 words per bullet. Do not add an introduction or closing sentence.',
+  },
+  catechisis: {
+    label: 'Catechism session',
+    prompt:
+      'Summarize this catechism session in 1-2 short bullet points with the main teaching point or lesson. Maximum 30 words per bullet. Do not add an introduction or closing sentence.',
+  },
+};
 
 function normalizeText(text) {
   return String(text || '')
@@ -47,7 +76,7 @@ function formatAsBullets(points) {
 /**
  * Rule-based summary for when Ollama is unavailable.
  */
-export function summarizeLocally(text, { maxPoints = 2 } = {}) {
+export function summarizeLocally(text, { maxPoints = 2, kind = 'announcement' } = {}) {
   const normalized = normalizeText(text);
   if (!normalized) {
     return '';
@@ -57,10 +86,11 @@ export function summarizeLocally(text, { maxPoints = 2 } = {}) {
     return normalized;
   }
 
+  const priorityPattern = PRIORITY_PATTERNS[kind] || PRIORITY_PATTERNS.default;
   const sentences = splitSentences(normalized);
   const ranked = [...sentences].sort((left, right) => {
-    const leftScore = PRIORITY_PATTERN.test(left) ? 1 : 0;
-    const rightScore = PRIORITY_PATTERN.test(right) ? 1 : 0;
+    const leftScore = priorityPattern.test(left) ? 1 : 0;
+    const rightScore = priorityPattern.test(right) ? 1 : 0;
     return rightScore - leftScore;
   });
 
@@ -91,7 +121,7 @@ export function summarizeLocally(text, { maxPoints = 2 } = {}) {
 
 async function summarizeWithOllama(text, { title, kind }) {
   const { baseUrl, model } = getOllamaConfig();
-  const label = kind === 'event' ? 'Event' : 'Announcement';
+  const config = KIND_CONFIG[kind] || KIND_CONFIG.announcement;
 
   const response = await axios.post(
     `${baseUrl}/api/chat`,
@@ -100,12 +130,11 @@ async function summarizeWithOllama(text, { title, kind }) {
       messages: [
         {
           role: 'system',
-          content:
-            'Summarize parish website content for a chatbot. Return 1-2 short bullet points with only the main facts: what is happening, when, where, who should attend, and any action needed. Maximum 30 words per bullet. Do not add an introduction or closing sentence.',
+          content: config.prompt,
         },
         {
           role: 'user',
-          content: `${label} title: ${title || 'Untitled'}\n\nFull text:\n${text}`,
+          content: `${config.label} title: ${title || 'Untitled'}\n\nFull text:\n${text}`,
         },
       ],
       stream: false,
@@ -117,7 +146,7 @@ async function summarizeWithOllama(text, { title, kind }) {
 }
 
 /**
- * Summarize long event/announcement text into main points for chat replies.
+ * Summarize long parish content into main points for chat replies.
  */
 export async function summarizeForChat(text, { title = '', kind = 'announcement' } = {}) {
   const normalized = normalizeText(text);
@@ -140,5 +169,5 @@ export async function summarizeForChat(text, { title = '', kind = 'announcement'
     }
   }
 
-  return summarizeLocally(normalized);
+  return summarizeLocally(normalized, { kind });
 }
