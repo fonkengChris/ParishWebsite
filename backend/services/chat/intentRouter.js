@@ -157,6 +157,8 @@ export async function buildRuleBasedReply(routed) {
   return formatToolResult(routed.tool, routed.result);
 }
 
+import { buildResourceLink } from './resourceLinks.js';
+
 export function buildRuleBasedSources(routed) {
   const { tool, result } = routed;
   const sourceTypeMap = {
@@ -180,8 +182,12 @@ export function buildRuleBasedSources(routed) {
     result.announcements ||
     [];
 
-  return items.map((item) => ({
-    type: sourceType,
-    id: item.id,
-  }));
+  return items.map((item) => {
+    const linkType = item.type === 'catechisis' ? 'catechisis' : sourceType;
+    return {
+      type: sourceType,
+      id: item.id,
+      url: buildResourceLink(linkType, item.id) || undefined,
+    };
+  });
 }

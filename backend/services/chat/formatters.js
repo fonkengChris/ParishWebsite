@@ -1,4 +1,5 @@
 import { summarizeForChat } from './textSummarizer.js';
+import { formatResourceLinkLine } from './resourceLinks.js';
 
 const DAY_LABELS = {
   sunday: 'Sunday',
@@ -164,6 +165,12 @@ export function formatPrayersReply(prayers, { category } = {}) {
       : '';
     lines.push(`${prayer.title}${prayerCategory}`);
     lines.push(truncateText(prayer.content, 500));
+
+    const prayerLink = formatResourceLinkLine('prayer', prayer.id, 'View full prayer');
+    if (prayerLink) {
+      lines.push(prayerLink);
+    }
+
     lines.push('');
   }
 
@@ -206,6 +213,13 @@ export async function formatSermonsReply(sermons, { type } = {}) {
       lines.push('  Audio/video is available on the Sermons page.');
     }
 
+    const linkType = sermon.type === 'catechisis' ? 'catechisis' : 'sermon';
+    const linkLabel = sermon.type === 'catechisis' ? 'Read full catechism session' : 'Read full sermon';
+    const sermonLink = formatResourceLinkLine(linkType, sermon.id, linkLabel);
+    if (sermonLink) {
+      lines.push(sermonLink);
+    }
+
     lines.push('');
   }
 
@@ -233,6 +247,15 @@ export async function formatAnnouncementsReply(announcements) {
       if (summary) {
         lines.push(indentSummary(summary));
       }
+    }
+
+    const announcementLink = formatResourceLinkLine(
+      'announcement',
+      announcement.id,
+      'Read full announcement'
+    );
+    if (announcementLink) {
+      lines.push(announcementLink);
     }
 
     lines.push('');

@@ -119,6 +119,14 @@ async function runOllamaChat(message, history = []) {
 
     const toolCalls = assistantMessage.tool_calls || [];
     if (!toolCalls.length) {
+      if (lastToolExecution) {
+        return {
+          reply: await formatToolResult(lastToolExecution.tool, lastToolExecution.result),
+          sources: collectedSources,
+          mode: 'ollama',
+        };
+      }
+
       return {
         reply: assistantMessage.content?.trim() || getOutOfScopeReply(),
         sources: collectedSources,

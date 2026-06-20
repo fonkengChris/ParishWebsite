@@ -193,6 +193,7 @@ export interface ChatMessage {
 export interface ChatSource {
   type: 'mass-schedule' | 'event' | 'prayer' | 'sermon' | 'announcement';
   id?: string;
+  url?: string;
 }
 
 export interface ChatRequest {

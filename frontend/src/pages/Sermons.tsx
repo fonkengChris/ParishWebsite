@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { sermonsAPI } from '../services/api';
 import type { Sermon } from '../types';
+import { useResourceHashScroll } from '../utils/resourceHashScroll';
 
 export default function Sermons() {
   const [sermons, setSermons] = useState<Sermon[]>([]);
@@ -27,6 +28,30 @@ export default function Sermons() {
 
     fetchContent();
   }, []);
+
+  useResourceHashScroll(loading);
+
+  useEffect(() => {
+    if (loading) {
+      return;
+    }
+
+    const hash = window.location.hash.slice(1);
+    if (!hash.startsWith('resource-')) {
+      return;
+    }
+
+    const itemId = hash.replace('resource-', '');
+    const item = [...sermons, ...catechisis].find((entry) => entry._id === itemId);
+
+    if (item?.type === 'catechisis') {
+      setActiveTab('catechisis');
+    } else if (item) {
+      setActiveTab('sermons');
+    } else {
+      setActiveTab('all');
+    }
+  }, [loading, sermons, catechisis]);
 
   const getDisplayContent = () => {
     if (activeTab === 'sermons') return sermons;
@@ -120,7 +145,8 @@ export default function Sermons() {
             {displayContent.map((item) => (
               <div
                 key={item._id}
-                className="bg-white rounded-2xl shadow-lg p-8 md:p-10 border border-gray-100 hover:shadow-2xl transition-all duration-300"
+                id={`resource-${item._id}`}
+                className="bg-white rounded-2xl shadow-lg p-8 md:p-10 border border-gray-100 hover:shadow-2xl transition-all duration-300 scroll-mt-24"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">

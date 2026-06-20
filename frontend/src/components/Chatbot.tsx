@@ -17,6 +17,39 @@ function createMessage(role: ChatMessage['role'], content: string): ChatMessage 
   return { role, content };
 }
 
+function renderMessageContent(content: string, isUser: boolean) {
+  const urlPattern = /https?:\/\/[^\s]+/g;
+  const parts: Array<string | JSX.Element> = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = urlPattern.exec(content)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(content.slice(lastIndex, match.index));
+    }
+
+    parts.push(
+      <a
+        key={`${match.index}-${match[0]}`}
+        href={match[0]}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`underline break-all ${isUser ? 'text-primary-100' : 'text-primary-600'}`}
+      >
+        {match[0]}
+      </a>
+    );
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < content.length) {
+    parts.push(content.slice(lastIndex));
+  }
+
+  return parts.length > 0 ? parts : content;
+}
+
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -118,7 +151,7 @@ export default function Chatbot() {
                       : 'bg-white text-gray-800 border border-gray-200 shadow-sm rounded-bl-md'
                   }`}
                 >
-                  {message.content}
+                  {renderMessageContent(message.content, message.role === 'user')}
                 </div>
               </div>
             ))}

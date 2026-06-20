@@ -3,6 +3,7 @@ import Layout from '../components/Layout';
 import { PRAYER_FILTER_OPTIONS, PRAYER_CATEGORY_OPTIONS } from '../data/constants';
 import { prayersAPI } from '../services/api';
 import type { Prayer } from '../types';
+import { useResourceHashScroll } from '../utils/resourceHashScroll';
 
 export default function Prayers() {
   const [prayers, setPrayers] = useState<Prayer[]>([]);
@@ -22,6 +23,28 @@ export default function Prayers() {
     };
     fetchPrayers();
   }, []);
+
+  useResourceHashScroll(loading);
+
+  useEffect(() => {
+    if (loading || prayers.length === 0) {
+      return;
+    }
+
+    const hash = window.location.hash.slice(1);
+    if (!hash.startsWith('resource-')) {
+      return;
+    }
+
+    const prayerId = hash.replace('resource-', '');
+    const prayer = prayers.find((item) => item._id === prayerId);
+
+    if (prayer?.category) {
+      setSelectedCategory(prayer.category);
+    } else {
+      setSelectedCategory('all');
+    }
+  }, [loading, prayers]);
 
   const filteredPrayers = selectedCategory === 'all'
     ? prayers
@@ -78,7 +101,8 @@ export default function Prayers() {
             {filteredPrayers.map((prayer) => (
               <div
                 key={prayer._id}
-                className="bg-white rounded-2xl shadow-lg p-8 md:p-10 hover:shadow-2xl transition-all duration-300 border border-gray-100"
+                id={`resource-${prayer._id}`}
+                className="bg-white rounded-2xl shadow-lg p-8 md:p-10 hover:shadow-2xl transition-all duration-300 border border-gray-100 scroll-mt-24"
               >
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
                   <h2 className="text-3xl md:text-4xl font-bold text-gray-900">{prayer.title}</h2>
