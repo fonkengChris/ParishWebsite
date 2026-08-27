@@ -26,30 +26,16 @@ export default function Navbar() {
   // Get user initials
   const getUserInitials = (user: User | null): string => {
     if (!user) return '?';
-    
-    if (user.username) {
-      return user.username.charAt(0).toUpperCase();
-    }
-    
-    if (user.email) {
-      return user.email.charAt(0).toUpperCase();
-    }
-    
+    if (user.username) return user.username.charAt(0).toUpperCase();
+    if (user.email) return user.email.charAt(0).toUpperCase();
     return '?';
   };
 
   // Get user display name
   const getUserDisplayName = (user: User | null): string => {
     if (!user) return 'User';
-    
-    if (user.username) {
-      return user.username;
-    }
-    
-    if (user.email) {
-      return user.email.split('@')[0];
-    }
-    
+    if (user.username) return user.username;
+    if (user.email) return user.email.split('@')[0];
     return 'User';
   };
 
@@ -64,10 +50,9 @@ export default function Navbar() {
   const navLinks = [
     { path: '/', label: 'Home' },
     { path: '/about-us', label: 'About' },
-    { path: '/mass-schedule', label: 'MassTimes' },
+    { path: '/mass-schedule', label: 'Mass Times' },
     { path: '/announcements', label: 'News' },
     { path: '/gallery', label: 'Gallery' },
-    { path: '/donations', label: 'Donations' },
     { path: '/contact', label: 'Contact' },
   ];
 
@@ -79,8 +64,8 @@ export default function Navbar() {
     { path: '/confession', label: 'Confession' },
   ];
 
-  const isCatholicFaithActive = catholicFaithLinks.some(link => 
-    location.pathname === link.path || 
+  const isCatholicFaithActive = catholicFaithLinks.some(link =>
+    location.pathname === link.path ||
     (link.path === '/prayers' && location.pathname.startsWith('/prayers'))
   );
 
@@ -90,74 +75,74 @@ export default function Navbar() {
     return ['admin', 'parish-priest', 'priest', 'editor'].includes(user.role);
   };
 
+  // Shared pill classes
+  const pill = 'px-3.5 py-2 rounded-full text-sm font-semibold transition-all duration-200';
+  const pillIdle = 'text-ink-soft hover:text-ink hover:bg-ivory-2';
+  const pillActive = 'bg-primary-600 text-white shadow-sm';
+
   return (
-    <nav className="sticky top-0 z-50 bg-gradient-to-r from-primary-700 via-primary-600 to-primary-700 text-white shadow-xl border-b border-primary-800">
+    <nav className="sticky top-0 z-50 bg-ivory/85 backdrop-blur-md border-b border-line">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16 gap-4">
-          <Link 
-            to="/" 
-            className="text-xl md:text-2xl font-bold hover:text-primary-100 transition-colors duration-200 navbar-logo-container flex-shrink-0 min-w-0"
-          >
-            <span className="navbar-logo-icon" aria-hidden="true">
-              ⛪
+        <div className="flex justify-between items-center h-[68px] gap-4">
+          {/* Brand */}
+          <Link to="/" className="flex items-center gap-3 flex-shrink-0 min-w-0 group">
+            <span
+              className="flex items-center justify-center w-10 h-10 text-white text-xl font-serif bg-primary-600 flex-shrink-0 transition-colors duration-300"
+              style={{ borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%' }}
+              aria-hidden="true"
+            >
+              ✝
             </span>
-            <span className="navbar-logo-text whitespace-nowrap">{PARISH_NAME}</span>
+            <span className="min-w-0">
+              <span className="block font-serif text-lg md:text-xl font-semibold text-ink leading-none truncate">
+                {PARISH_NAME}
+              </span>
+              <span className="block text-[0.58rem] tracking-[0.22em] uppercase font-bold text-ink-soft mt-1">
+                Buea Diocese · Limbe
+              </span>
+            </span>
           </Link>
 
-          {/* Desktop Navigation - Only show on large screens (lg and above) */}
-          <div className="hidden lg:flex items-center space-x-1 flex-shrink">
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center gap-1 flex-shrink">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                  isActive(link.path)
-                    ? 'bg-white text-primary-700 shadow-md'
-                    : 'text-primary-100 hover:bg-primary-500/50 hover:text-white'
-                }`}
+                className={`${pill} ${isActive(link.path) ? pillActive : pillIdle}`}
               >
                 {link.label}
               </Link>
             ))}
+
             {/* Catholic Faith Dropdown */}
             <div className="relative">
               <button
                 onClick={() => setShowCatholicFaithMenu(!showCatholicFaithMenu)}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-1 ${
-                  isCatholicFaithActive
-                    ? 'bg-white text-primary-700 shadow-md'
-                    : 'text-primary-100 hover:bg-primary-500/50 hover:text-white'
-                }`}
+                className={`${pill} flex items-center gap-1 ${isCatholicFaithActive ? pillActive : pillIdle}`}
               >
-                Catholic Faith
+                The Faith
                 <svg
                   className={`w-4 h-4 transition-transform duration-200 ${showCatholicFaithMenu ? 'rotate-180' : ''}`}
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+                  fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                  viewBox="0 0 24 24" stroke="currentColor"
                 >
                   <path d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
               {showCatholicFaithMenu && (
                 <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setShowCatholicFaithMenu(false)}
-                  ></div>
-                  <div className="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-2xl py-2 z-20 border border-gray-100">
+                  <div className="fixed inset-0 z-10" onClick={() => setShowCatholicFaithMenu(false)}></div>
+                  <div className="absolute left-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl py-2 z-20 border border-line">
                     {catholicFaithLinks.map((link) => (
                       <Link
                         key={link.path}
                         to={link.path}
                         onClick={() => setShowCatholicFaithMenu(false)}
-                        className={`block px-4 py-3 text-sm transition-all duration-200 ${
+                        className={`block px-4 py-2.5 text-sm transition-all duration-200 ${
                           isActive(link.path)
                             ? 'bg-primary-50 text-primary-700 font-semibold border-l-4 border-primary-600'
-                            : 'text-gray-700 hover:bg-gray-50 hover:pl-5'
+                            : 'text-ink-soft hover:bg-ivory-2 hover:text-ink hover:pl-5'
                         }`}
                       >
                         {link.label}
@@ -167,68 +152,49 @@ export default function Navbar() {
                 </>
               )}
             </div>
+
             {user && hasAdminAccess(user) && (
               <Link
                 to="/admin/dashboard"
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                  isActive('/admin/dashboard') || location.pathname.startsWith('/admin/')
-                    ? 'bg-white text-primary-700 shadow-md'
-                    : 'text-primary-100 hover:bg-primary-500/50 hover:text-white'
+                className={`${pill} ${
+                  isActive('/admin/dashboard') || location.pathname.startsWith('/admin/') ? pillActive : pillIdle
                 }`}
               >
                 Dashboard
               </Link>
             )}
+
+            {/* Give — primary action */}
+            <Link
+              to="/donations"
+              className="ml-1 px-5 py-2 rounded-full text-sm font-semibold bg-primary-600 text-white hover:bg-primary-700 shadow-sm hover:shadow transition-all duration-200"
+            >
+              Give
+            </Link>
+
             {user ? (
-              <div className="relative">
+              <div className="relative ml-1">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 hover:from-primary-400 hover:to-primary-500 text-white font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 focus:ring-offset-2 focus:ring-offset-primary-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-ivory transition-all duration-200 shadow-sm"
                   aria-label="User menu"
                 >
                   {getUserInitials(user)}
                 </button>
-                
-                {/* User dropdown menu */}
+
                 {showUserMenu && (
                   <>
-                    <div
-                      className="fixed inset-0 z-10"
-                      onClick={() => setShowUserMenu(false)}
-                    ></div>
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl py-2 z-20 border border-gray-100">
-                      <div className="px-4 py-3 border-b border-gray-200 bg-gradient-to-r from-primary-50 to-primary-100">
-                        <p className="text-sm font-semibold text-gray-900">{getUserDisplayName(user)}</p>
-                        <p className="text-xs text-primary-600 capitalize font-medium">{user.role}</p>
+                    <div className="fixed inset-0 z-10" onClick={() => setShowUserMenu(false)}></div>
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl py-2 z-20 border border-line">
+                      <div className="px-4 py-3 border-b border-line bg-primary-50">
+                        <p className="text-sm font-semibold text-ink">{getUserDisplayName(user)}</p>
+                        <p className="text-xs text-primary-700 capitalize font-medium">{user.role}</p>
                       </div>
-                      <Link
-                        to="/profile"
-                        onClick={() => setShowUserMenu(false)}
-                        className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-                      >
-                        View Profile
-                      </Link>
-                      <Link
-                        to="/profile/edit"
-                        onClick={() => setShowUserMenu(false)}
-                        className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-                      >
-                        Edit Profile
-                      </Link>
-                      <Link
-                        to="/profile/change-password"
-                        onClick={() => setShowUserMenu(false)}
-                        className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-                      >
-                        Change Password
-                      </Link>
-                      <div className="border-t border-gray-200 my-1"></div>
-                      <button
-                        onClick={handleLogout}
-                        className="block w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200 font-medium"
-                      >
-                        Logout
-                      </button>
+                      <Link to="/profile" onClick={() => setShowUserMenu(false)} className="block px-4 py-2.5 text-sm text-ink-soft hover:bg-ivory-2 hover:text-ink transition-colors duration-200">View Profile</Link>
+                      <Link to="/profile/edit" onClick={() => setShowUserMenu(false)} className="block px-4 py-2.5 text-sm text-ink-soft hover:bg-ivory-2 hover:text-ink transition-colors duration-200">Edit Profile</Link>
+                      <Link to="/profile/change-password" onClick={() => setShowUserMenu(false)} className="block px-4 py-2.5 text-sm text-ink-soft hover:bg-ivory-2 hover:text-ink transition-colors duration-200">Change Password</Link>
+                      <div className="border-t border-line my-1"></div>
+                      <button onClick={handleLogout} className="block w-full text-left px-4 py-2.5 text-sm text-red-700 hover:bg-red-50 transition-colors duration-200 font-medium">Logout</button>
                     </div>
                   </>
                 )}
@@ -236,91 +202,63 @@ export default function Navbar() {
             ) : (
               <Link
                 to="/login"
-                className="px-4 py-2 rounded-lg text-sm font-semibold bg-white text-primary-700 hover:bg-primary-50 shadow-md hover:shadow-lg transition-all duration-200"
+                className="ml-1 px-4 py-2 rounded-full text-sm font-semibold text-ink bg-white border border-line hover:border-primary-600 transition-all duration-200"
               >
                 Login
               </Link>
             )}
           </div>
 
-          {/* Mobile/Tablet menu button - Show on screens smaller than lg (1024px) */}
+          {/* Mobile/Tablet menu button */}
           <button
-            className="lg:hidden p-2 rounded-lg text-primary-100 hover:bg-primary-500/50 transition-all duration-200 flex-shrink-0"
+            className="lg:hidden p-2 rounded-lg text-ink hover:bg-ivory-2 transition-all duration-200 flex-shrink-0"
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle menu"
           >
-            <svg
-              className="h-6 w-6 transition-transform duration-200"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              {isOpen ? (
-                <path d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path d="M4 6h16M4 12h16M4 18h16" />
-              )}
+            <svg className="h-6 w-6" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+              {isOpen ? <path d="M6 18L18 6M6 6l12 12" /> : <path d="M4 6h16M4 12h16M4 18h16" />}
             </svg>
           </button>
         </div>
 
-        {/* Mobile/Tablet Navigation - Show on screens smaller than lg (1024px) */}
+        {/* Mobile/Tablet Navigation */}
         {isOpen && (
-          <div className="lg:hidden py-4 space-y-2 bg-primary-800/50 rounded-lg mt-2 mb-2">
+          <div className="lg:hidden py-4 space-y-1.5 bg-white rounded-2xl mt-1 mb-3 border border-line shadow-lg px-2">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
                 onClick={() => setIsOpen(false)}
-                className={`block px-4 py-3 rounded-lg text-base font-semibold transition-all duration-200 ${
-                  isActive(link.path)
-                    ? 'bg-white text-primary-700 shadow-md'
-                    : 'text-primary-100 hover:bg-primary-500/50 hover:text-white'
+                className={`block px-4 py-3 rounded-xl text-base font-semibold transition-all duration-200 ${
+                  isActive(link.path) ? 'bg-primary-600 text-white' : 'text-ink-soft hover:bg-ivory-2 hover:text-ink'
                 }`}
               >
                 {link.label}
               </Link>
             ))}
+
             {/* Catholic Faith Mobile Menu */}
             <div>
               <button
                 onClick={() => setShowCatholicFaithMenu(!showCatholicFaithMenu)}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-base font-semibold transition-all duration-200 ${
-                  isCatholicFaithActive
-                    ? 'bg-white text-primary-700 shadow-md'
-                    : 'text-primary-100 hover:bg-primary-500/50 hover:text-white'
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-base font-semibold transition-all duration-200 ${
+                  isCatholicFaithActive ? 'bg-primary-600 text-white' : 'text-ink-soft hover:bg-ivory-2 hover:text-ink'
                 }`}
               >
-                CatholicFaith
-                <svg
-                  className={`w-5 h-5 ml-2 transition-transform duration-200 ${showCatholicFaithMenu ? 'rotate-180' : ''}`}
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                The Faith
+                <svg className={`w-5 h-5 ml-2 transition-transform duration-200 ${showCatholicFaithMenu ? 'rotate-180' : ''}`} fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
                   <path d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
               {showCatholicFaithMenu && (
-                <div className="pl-4 mt-2 space-y-1">
+                <div className="pl-3 mt-1 space-y-1">
                   {catholicFaithLinks.map((link) => (
                     <Link
                       key={link.path}
                       to={link.path}
-                      onClick={() => {
-                        setIsOpen(false);
-                        setShowCatholicFaithMenu(false);
-                      }}
-                      className={`block px-4 py-2 rounded-lg text-base font-medium transition-all duration-200 ${
-                        isActive(link.path)
-                          ? 'bg-primary-700 text-white'
-                          : 'text-primary-200 hover:bg-primary-500/50 hover:text-white'
+                      onClick={() => { setIsOpen(false); setShowCatholicFaithMenu(false); }}
+                      className={`block px-4 py-2.5 rounded-xl text-base font-medium transition-all duration-200 ${
+                        isActive(link.path) ? 'bg-primary-100 text-primary-800' : 'text-ink-soft hover:bg-ivory-2 hover:text-ink'
                       }`}
                     >
                       {link.label}
@@ -329,57 +267,44 @@ export default function Navbar() {
                 </div>
               )}
             </div>
+
             {user && hasAdminAccess(user) && (
               <Link
                 to="/admin/dashboard"
                 onClick={() => setIsOpen(false)}
-                className={`block px-4 py-3 rounded-lg text-base font-semibold transition-all duration-200 ${
-                  isActive('/admin/dashboard') || location.pathname.startsWith('/admin/')
-                    ? 'bg-white text-primary-700 shadow-md'
-                    : 'text-primary-100 hover:bg-primary-500/50 hover:text-white'
+                className={`block px-4 py-3 rounded-xl text-base font-semibold transition-all duration-200 ${
+                  isActive('/admin/dashboard') || location.pathname.startsWith('/admin/') ? 'bg-primary-600 text-white' : 'text-ink-soft hover:bg-ivory-2 hover:text-ink'
                 }`}
               >
                 Dashboard
               </Link>
             )}
+
+            <Link
+              to="/donations"
+              onClick={() => setIsOpen(false)}
+              className="block px-4 py-3 rounded-xl text-base font-semibold bg-primary-600 text-white text-center hover:bg-primary-700 transition-all duration-200"
+            >
+              Give
+            </Link>
+
             {user ? (
-              <div className="px-4 py-3 space-y-2 bg-primary-800/30 rounded-lg">
-                <div className="flex items-center space-x-3 px-2 py-2 border-b border-primary-600">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-white font-semibold text-sm shadow-md">
+              <div className="px-2 py-2 space-y-1 bg-ivory-2 rounded-xl">
+                <div className="flex items-center space-x-3 px-2 py-2 border-b border-line">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-600 text-white font-semibold text-sm">
                     {getUserInitials(user)}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-white">{getUserDisplayName(user)}</p>
-                    <p className="text-xs text-primary-200 capitalize font-medium">{user.role}</p>
+                    <p className="text-sm font-semibold text-ink">{getUserDisplayName(user)}</p>
+                    <p className="text-xs text-ink-soft capitalize font-medium">{user.role}</p>
                   </div>
                 </div>
-                <Link
-                  to="/profile"
-                  onClick={() => setIsOpen(false)}
-                  className="block px-4 py-3 rounded-lg text-base font-medium text-primary-100 hover:bg-primary-500/50 hover:text-white transition-all duration-200"
-                >
-                  View Profile
-                </Link>
-                <Link
-                  to="/profile/edit"
-                  onClick={() => setIsOpen(false)}
-                  className="block px-4 py-3 rounded-lg text-base font-medium text-primary-100 hover:bg-primary-500/50 hover:text-white transition-all duration-200"
-                >
-                  Edit Profile
-                </Link>
-                <Link
-                  to="/profile/change-password"
-                  onClick={() => setIsOpen(false)}
-                  className="block px-4 py-3 rounded-lg text-base font-medium text-primary-100 hover:bg-primary-500/50 hover:text-white transition-all duration-200"
-                >
-                  Change Password
-                </Link>
+                <Link to="/profile" onClick={() => setIsOpen(false)} className="block px-4 py-2.5 rounded-xl text-base font-medium text-ink-soft hover:bg-white hover:text-ink transition-all duration-200">View Profile</Link>
+                <Link to="/profile/edit" onClick={() => setIsOpen(false)} className="block px-4 py-2.5 rounded-xl text-base font-medium text-ink-soft hover:bg-white hover:text-ink transition-all duration-200">Edit Profile</Link>
+                <Link to="/profile/change-password" onClick={() => setIsOpen(false)} className="block px-4 py-2.5 rounded-xl text-base font-medium text-ink-soft hover:bg-white hover:text-ink transition-all duration-200">Change Password</Link>
                 <button
-                  onClick={() => {
-                    handleLogout();
-                    setIsOpen(false);
-                  }}
-                  className="block w-full text-left px-4 py-3 rounded-lg text-base font-semibold bg-primary-500 hover:bg-primary-400 text-white transition-all duration-200 shadow-md hover:shadow-lg"
+                  onClick={() => { handleLogout(); setIsOpen(false); }}
+                  className="block w-full text-left px-4 py-2.5 rounded-xl text-base font-semibold text-red-700 hover:bg-red-50 transition-all duration-200"
                 >
                   Logout
                 </button>
@@ -388,7 +313,7 @@ export default function Navbar() {
               <Link
                 to="/login"
                 onClick={() => setIsOpen(false)}
-                className="block px-4 py-3 rounded-lg text-base font-semibold bg-white text-primary-700 hover:bg-primary-50 transition-all duration-200 shadow-md hover:shadow-lg text-center"
+                className="block px-4 py-3 rounded-xl text-base font-semibold text-ink bg-white border border-line hover:border-primary-600 transition-all duration-200 text-center"
               >
                 Login
               </Link>
@@ -399,4 +324,3 @@ export default function Navbar() {
     </nav>
   );
 }
-

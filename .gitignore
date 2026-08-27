@@ -5,6 +5,8 @@ node_modules/
 .env
 .env.local
 *.local
+# Personal deploy guide — contains live secrets, do not commit
+DEPLOYMENT_GUIDE.md
 
 # Logs
 *.log

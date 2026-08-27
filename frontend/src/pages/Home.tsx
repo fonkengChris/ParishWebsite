@@ -8,10 +8,46 @@ import {
   liturgicalColorAPI,
   type LiturgicalColorResponse,
 } from "../services/api";
-import { PARISH_NAME, PARISH_DIOCESE } from "../components/Map";
+import { PARISH_NAME } from "../components/Map";
+import { useTheme } from "../contexts/ThemeContext";
 import type { Announcement, Event, SaintDay } from "../types";
 
+// Turn a liturgical colour into the phrase the Church would use for the season.
+function seasonPhrase(color?: string): string {
+  switch ((color || "").toLowerCase()) {
+    case "green":
+      return "Ordinary Time";
+    case "purple":
+    case "violet":
+      return "A Season of Preparation";
+    case "white":
+      return "A Feast of the Church";
+    case "gold":
+      return "A Solemnity of the Lord";
+    case "red":
+      return "A Feast of Martyrs & the Spirit";
+    case "rose":
+      return "Gaudete · Laetare";
+    default:
+      return "The Church's Year";
+  }
+}
+
+function saintTypeLabel(type: string): string {
+  switch (type) {
+    case "feast":
+      return "Feast";
+    case "memorial":
+      return "Memorial";
+    case "optional":
+      return "Optional Memorial";
+    default:
+      return "Saint of the Day";
+  }
+}
+
 export default function Home() {
+  const { liturgicalColor } = useTheme();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [saintOfTheDay, setSaintOfTheDay] = useState<SaintDay | null>(null);
@@ -24,16 +60,14 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch announcements, events, and saints in parallel
         const [announcementsData, eventsData, saintsData] = await Promise.all([
           announcementsAPI.getAll(),
           eventsAPI.getAll(),
           saintsAPI.getAll(9),
         ]);
 
-        setAnnouncements(announcementsData.slice(0, 3)); // Show latest 3
+        setAnnouncements(announcementsData.slice(0, 3));
 
-        // Filter events for next 7 days
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const sevenDaysLater = new Date(today);
@@ -45,13 +79,12 @@ export default function Home() {
             eventDate.setHours(0, 0, 0, 0);
             return eventDate >= today && eventDate <= sevenDaysLater;
           })
-          .slice(0, 3); // Show latest 3
+          .slice(0, 3);
 
         setEvents(upcomingEvents);
         setSaintOfTheDay(saintsData.today);
         setUpcomingFeasts(saintsData.upcoming);
 
-        // Fetch liturgical colors for each upcoming feast date
         const colorPromises = saintsData.upcoming.map(async (feastDay) => {
           try {
             const color = await liturgicalColorAPI.getByDate(feastDay.date);
@@ -65,9 +98,7 @@ export default function Home() {
         const colorResults = await Promise.all(colorPromises);
         const colorsMap: Record<string, LiturgicalColorResponse> = {};
         colorResults.forEach((result) => {
-          if (result) {
-            colorsMap[result.date] = result.color;
-          }
+          if (result) colorsMap[result.date] = result.color;
         });
         setFeastColors(colorsMap);
       } catch (error) {
@@ -79,485 +110,409 @@ export default function Home() {
     fetchData();
   }, []);
 
+  const todayLabel = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  const season = seasonPhrase(liturgicalColor?.color);
+  const todaySaint = saintOfTheDay?.saints?.[0];
+
   return (
     <Layout>
-      {/* Hero Section with Church Background */}
-      <section
-        className="relative bg-cover bg-center bg-no-repeat text-white py-32 md:py-48"
-        style={{
-          backgroundImage: "url(/images/church.jpeg)",
-        }}
-      >
-        {/* Overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/50"></div>
-
-        {/* Avatars - Pope (left) and Bishop (right) */}
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
-          <div className="flex justify-between items-start pt-4 md:pt-2">
-            {/* Pope Avatar - Extreme Left */}
-            <div className="flex flex-col items-center">
-              <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white shadow-2xl mb-3">
-                <img
-                  src="/images/Pope.jpeg"
-                  alt="Pope"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <p className="text-white text-sm md:text-base font-semibold drop-shadow-lg text-center max-w-[120px] md:max-w-[150px]">
-                His Holiness Pope Leo XIV
-              </p>
+      {/* ============ HERO — welcome + today in the liturgical year ============ */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10 lg:pt-20 lg:pb-12">
+        <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-12 lg:gap-16 items-center">
+          {/* Left */}
+          <div>
+            <div className="lit-soft-panel inline-flex items-center gap-2.5 rounded-full pl-3 pr-4 py-1.5 mb-6">
+              <span className="w-2.5 h-2.5 rounded-full bg-primary-600" aria-hidden="true"></span>
+              <span className="text-sm font-semibold text-primary-800">
+                {todayLabel} · {season}
+              </span>
             </div>
-
-            {/* Bishop Avatar - Extreme Right */}
-            <div className="flex flex-col items-center">
-              <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white shadow-2xl mb-3">
-                <img
-                  src="/images/bishop.jpeg"
-                  alt="Bishop"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <p className="text-white text-sm md:text-base font-semibold drop-shadow-lg text-center max-w-[120px] md:max-w-[150px]">
-                His Excellency Bishop Michael Bibi Bishop of Buea Diocese
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
-          <h1 className="text-5xl md:text-7xl font-bold mb-4 drop-shadow-2xl tracking-tight">
-            {PARISH_NAME}
-          </h1>
-          <h3 className="text-3xl md:text-5xl font-bold mb-4 drop-shadow-2xl tracking-tight">
-            (Holy Ground)
-          </h3>
-          <a
-            href="https://bueadiocese.org"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xl md:text-2xl mb-2 drop-shadow-lg font-medium text-primary-200 hover:text-primary-100 transition-colors duration-200 no-underline decoration-2 inline-block"
-          >
-            {PARISH_DIOCESE}
-          </a>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/mass-schedule"
-              className="bg-white text-primary-800 px-8 py-4 rounded-xl font-bold hover:bg-primary-50 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 transform border-2 border-primary-200"
-            >
-              View Mass Schedule
-            </Link>
-            <Link
-              to="/contact"
-              className="bg-primary-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-primary-700 transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 transform"
-            >
-              Contact Us
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Encouragement to Grow in Faith */}
-      <section className="py-16 bg-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold mb-3 text-gray-900">
-              Grow in Your Faith
-            </h2>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Nourish your soul each day through Scripture and the teaching of
-              the Church.
+            <h1 className="font-serif font-medium text-ink leading-[1.02] tracking-tight text-[2.75rem] sm:text-6xl lg:text-[4.5rem]">
+              Welcome home to{" "}
+              <em className="italic text-primary-700">Holy Ground</em>.
+            </h1>
+            <p className="mt-6 text-lg text-ink-soft max-w-[48ch]">
+              {PARISH_NAME} is a family of faith in Limbe — gathering to worship, to serve the
+              sick, and to walk together through the whole of the Church's year. There's a place
+              for you here.
             </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-100 rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow">
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                Immerse Yourself in the Holy Bible
-              </h3>
-              <p className="text-gray-700 mb-4 leading-relaxed">
-                Make a habit of reading the Scriptures daily. God speaks to us
-                through His Word, strengthening, guiding, and consoling us in
-                every circumstance.
-              </p>
-              <a
-                href="https://catenabible.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-blue-700 font-semibold hover:text-blue-800"
+            <div className="mt-8 flex flex-wrap gap-3.5">
+              <Link
+                to="/mass-schedule"
+                className="inline-flex items-center px-6 py-3.5 rounded-full font-semibold text-white bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-600/20 hover:-translate-y-0.5 transition-all duration-200"
               >
-                Read the Bible online
-                <span>↗</span>
-              </a>
-            </div>
-            <div className="bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-100 rounded-2xl p-8 shadow-sm hover:shadow-md transition-shadow">
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                Deepen Your Faith with the Catechism
-              </h3>
-              <p className="text-gray-700 mb-4 leading-relaxed">
-                The Catechism of the Catholic Church presents the faith clearly
-                and completely. Regular reading will help you better understand
-                what the Church believes and teaches.
-              </p>
-              <a
-                href="https://www.vatican.va/archive/ENG0015/_INDEX.HTM"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-amber-700 font-semibold hover:text-amber-800"
+                View Mass Times
+              </Link>
+              <Link
+                to="/about-us"
+                className="inline-flex items-center px-6 py-3.5 rounded-full font-semibold text-ink bg-white border border-line hover:border-primary-600 transition-all duration-200"
               >
-                Read the Catechism online
-                <span>↗</span>
-              </a>
+                New here? Start here
+              </Link>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Two Column Section: Events/Announcements and Feasts */}
-      <section className="py-20 bg-gradient-to-b from-white via-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left Column: Latest News & Upcoming Events */}
-            <div>
-              <div className="mb-8">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-                  Latest News & Upcoming Events
-                </h2>
-                <p className="text-gray-600 text-base mb-4">
-                  Stay informed about parish news and upcoming events
+          {/* Right — arched image + floating saint card */}
+          <div className="relative">
+            <div className="arch-frame aspect-[4/5] max-w-[420px] mx-auto lg:mr-0">
+              <img
+                src="/images/church.jpeg"
+                alt={`${PARISH_NAME} church`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="absolute left-2 sm:-left-4 bottom-8 bg-white border border-line rounded-2xl p-4 pr-5 shadow-xl max-w-[250px]">
+              <p className="text-[0.62rem] tracking-[0.18em] uppercase font-bold text-gold">
+                {todaySaint ? saintTypeLabel(todaySaint.type) : "The Church's Calendar"}
+              </p>
+              <h3 className="font-serif font-semibold text-lg text-ink mt-1 leading-snug">
+                {saintOfTheDay?.saints?.length
+                  ? saintOfTheDay.saints.map((s) => s.name).join(" & ")
+                  : season}
+              </h3>
+              {todaySaint?.description && todaySaint.type !== "none" && (
+                <p className="text-xs text-ink-soft mt-1 line-clamp-3">
+                  {todaySaint.description}
                 </p>
-                <div className="flex gap-4 mb-6">
-                  <Link
-                    to="/announcements"
-                    className="text-primary-700 hover:text-primary-900 font-bold inline-flex items-center gap-2 group px-4 py-2 rounded-lg hover:bg-primary-50 transition-colors text-base"
-                  >
-                    All Announcements
-                    <span className="group-hover:translate-x-1 transition-transform">
-                      →
-                    </span>
-                  </Link>
-                  <Link
-                    to="/events"
-                    className="text-primary-700 hover:text-primary-900 font-bold inline-flex items-center gap-2 group px-4 py-2 rounded-lg hover:bg-primary-50 transition-colors text-base"
-                  >
-                    All Events
-                    <span className="group-hover:translate-x-1 transition-transform">
-                      →
-                    </span>
-                  </Link>
-                </div>
-              </div>
-              {loading ? (
-                <div className="text-center py-12">
-                  <div className="inline-flex flex-col items-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-200 border-t-primary-600 mb-4"></div>
-                    <p className="text-gray-500 text-base font-medium">
-                      Loading content...
-                    </p>
-                  </div>
-                </div>
-              ) : announcements.length === 0 && events.length === 0 ? (
-                <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-gray-200">
-                  <div className="text-6xl mb-4">📭</div>
-                  <p className="text-gray-600 text-base font-medium">
-                    No announcements or events at this time.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {/* Announcements */}
-                  {announcements.map((announcement) => (
-                    <Link
-                      key={announcement._id}
-                      to={`/announcements/${announcement._id}`}
-                      className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 group block"
-                    >
-                      {announcement.image && (
-                        <div className="relative overflow-hidden h-48">
-                          <img
-                            src={announcement.image}
-                            alt={announcement.title}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent"></div>
-                          <div className="absolute top-3 left-3">
-                            <span className="px-2 py-1 bg-primary-600 text-white text-xs font-semibold rounded-full">
-                              Announcement
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                      {!announcement.image && (
-                        <div className="relative overflow-hidden h-48 bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
-                          <div className="text-5xl text-white opacity-80">📢</div>
-                          <div className="absolute top-3 left-3">
-                            <span className="px-2 py-1 bg-white text-primary-800 text-xs font-bold rounded-full border border-primary-200">
-                              Announcement
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                      <div className="p-5">
-                        <h3 className="text-lg font-bold mb-2 text-gray-900 group-hover:text-primary-800 transition-colors line-clamp-2">
-                          {announcement.title}
-                        </h3>
-                        <p className="text-gray-600 text-sm mb-3 line-clamp-2 leading-relaxed">
-                          {announcement.content}
-                        </p>
-                        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                          <p className="text-primary-800 text-sm font-bold">
-                            {new Date(announcement.date).toLocaleDateString(
-                              "en-US",
-                              {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                              }
-                            )}
-                          </p>
-                          <span className="text-primary-800 text-sm font-bold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
-                            Read More <span>→</span>
-                          </span>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-
-                  {/* Upcoming Events */}
-                  {events.map((event) => (
-                    <Link
-                      key={event._id}
-                      to="/events"
-                      className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 group block"
-                    >
-                      {event.image && (
-                        <div className="relative overflow-hidden h-48">
-                          <img
-                            src={event.image}
-                            alt={event.title}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent"></div>
-                          <div className="absolute top-3 left-3">
-                            <span className="px-2 py-1 bg-orange-600 text-white text-xs font-semibold rounded-full">
-                              Event
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                      {!event.image && (
-                        <div className="relative overflow-hidden h-48 bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
-                          <div className="flex flex-col items-center justify-center w-20 h-20 bg-white rounded-xl shadow-xl">
-                            <div className="w-full text-center text-xs font-semibold tracking-wide text-white bg-orange-500 rounded-t-xl py-1">
-                              EVENT
-                            </div>
-                            <div className="flex-1 flex items-center justify-center">
-                              <span className="text-xl font-extrabold text-gray-900">
-                                {new Date(event.startDate).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    month: "short",
-                                    day: "numeric",
-                                  }
-                                )}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="absolute top-3 left-3">
-                            <span className="px-2 py-1 bg-white text-orange-600 text-xs font-semibold rounded-full">
-                              Event
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                      <div className="p-5">
-                        <h3 className="text-lg font-bold mb-2 text-gray-900 group-hover:text-primary-800 transition-colors line-clamp-2">
-                          {event.title}
-                        </h3>
-                        <p className="text-gray-600 text-sm mb-3 line-clamp-2 leading-relaxed">
-                          {event.description}
-                        </p>
-                        <div className="space-y-1 pt-3 border-t border-gray-100">
-                          <div className="flex items-start gap-2">
-                            <span className="text-primary-600 text-xs font-semibold">
-                              📅
-                            </span>
-                            <p className="text-primary-600 text-xs font-semibold flex-1">
-                              {new Date(event.startDate).toLocaleDateString(
-                                "en-US",
-                                {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                  hour: "numeric",
-                                  minute: "2-digit",
-                                }
-                              )}
-                            </p>
-                          </div>
-                          {event.location && (
-                            <div className="flex items-start gap-2">
-                              <span className="text-primary-600 text-xs font-semibold">
-                                📍
-                              </span>
-                              <p className="text-gray-600 text-xs flex-1 line-clamp-1">
-                                {event.location}
-                              </p>
-                            </div>
-                          )}
-                          <div className="flex items-center justify-end pt-1">
-                            <span className="text-primary-800 text-sm font-bold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
-                              View Details <span>→</span>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
               )}
             </div>
+          </div>
+        </div>
+      </section>
 
-            {/* Right Column: Saint of the Day and Upcoming Feasts */}
-            <div>
-              {/* Saint of the Day */}
-              {saintOfTheDay && (
-                <div className="mb-8">
-                  <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
-                    Saint of the Day
-                  </h2>
-                  <div className="bg-gradient-to-br from-primary-50 to-primary-100 border-2 border-primary-200 rounded-xl p-6 shadow-lg">
-                    <div className="text-center">
-                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-600 text-white text-3xl mb-4 shadow-xl">
-                        ✝️
-                      </div>
-                      <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
-                        {saintOfTheDay.saints
-                          .map((saint) => saint.name)
-                          .join(" and ")}
+      {/* ============ QUICK ROW ============ */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+        <div className="grid sm:grid-cols-3 gap-4">
+          {[
+            {
+              to: "/mass-schedule",
+              k: "Sunday Mass",
+              h: "7:00 & 9:30 AM",
+              p: "Saturday Vigil at 6:00 PM.",
+            },
+            {
+              to: "/confession",
+              k: "Confession",
+              h: "Saturdays, 5 PM",
+              p: "Or by appointment with the priest.",
+            },
+            {
+              to: "/donations",
+              k: "Support the Parish",
+              h: "Give Online",
+              p: "Sustain the mission and care of the sick.",
+            },
+          ].map((c) => (
+            <Link
+              key={c.k}
+              to={c.to}
+              className="group bg-white border border-line rounded-2xl p-6 hover:border-primary-600 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary-600/5 transition-all duration-200"
+            >
+              <p className="text-[0.66rem] tracking-[0.16em] uppercase font-bold text-primary-700">
+                {c.k}
+              </p>
+              <h3 className="font-serif font-semibold text-2xl text-ink mt-1">{c.h}</h3>
+              <p className="text-sm text-ink-soft mt-1">{c.p}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ============ SIGNATURE MOMENT — the Sanctuary arch-of-light band ============ */}
+      <section className="sanctuary-band">
+        <div className="s-bg">
+          <img src="/images/inside-view.jpeg" alt="Interior of the parish at prayer" />
+        </div>
+        <div className="s-arch" aria-hidden="true"></div>
+        <div className="s-inner max-w-3xl mx-auto text-center px-4 sm:px-6 py-24 sm:py-28">
+          <p className="s-eyebrow text-xs tracking-[0.28em] uppercase font-bold text-primary-100 mb-5">
+            Come and Pray
+          </p>
+          <h2 className="font-display font-semibold text-white leading-[1.08] text-4xl sm:text-5xl">
+            The doors are open.{" "}
+            <em className="italic text-primary-200">Come and stand a while.</em>
+          </h2>
+          <p className="mt-5 text-stone-ivory text-lg max-w-[46ch] mx-auto">
+            Beyond the news and the schedule there is the quiet of the sanctuary — Adoration,
+            Confession, and the daily Mass, kept faithfully in step with the Church's year.
+          </p>
+          <Link
+            to="/mass-schedule"
+            className="mt-8 inline-block px-8 py-4 rounded-sm bg-primary-400 text-stone font-bold text-xs tracking-[0.16em] uppercase hover:brightness-110 hover:-translate-y-0.5 transition-all duration-200"
+          >
+            Adoration &amp; Confession Times
+          </Link>
+          <div className="mt-11 flex flex-wrap justify-center divide-x divide-white/10">
+            {[
+              { t: "6:30 AM", l: "Daily Mass" },
+              { t: "Fri · 5 PM", l: "Adoration" },
+              { t: "Sat · 5 PM", l: "Confession" },
+            ].map((h) => (
+              <div key={h.l} className="px-7">
+                <div className="s-hour font-display text-2xl text-white">{h.t}</div>
+                <div className="s-hour text-[0.66rem] tracking-[0.18em] uppercase font-bold text-stone-ivory mt-1">
+                  {h.l}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ GROW IN FAITH ============ */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="text-center max-w-2xl mx-auto mb-10">
+          <p className="text-xs tracking-[0.2em] uppercase font-bold text-primary-700">Formation</p>
+          <h2 className="font-serif font-medium text-ink text-4xl md:text-5xl mt-2">
+            Grow in your faith
+          </h2>
+          <p className="text-ink-soft mt-3">
+            Nourish your soul each day through Scripture and the teaching of the Church.
+          </p>
+        </div>
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="relative bg-white border border-line rounded-3xl p-9 overflow-hidden">
+            <span className="absolute top-0 left-8 h-1.5 rounded-b-md bg-primary-600" style={{ width: "3.25rem" }} aria-hidden="true"></span>
+            <p className="text-xs tracking-[0.2em] uppercase font-bold text-primary-700 mt-3">
+              Scripture
+            </p>
+            <h3 className="font-serif font-semibold text-2xl text-ink mt-2 mb-3">
+              Immerse yourself in the Holy Bible
+            </h3>
+            <p className="text-ink-soft mb-5 leading-relaxed">
+              Make a habit of reading the Scriptures daily. God speaks to us through His Word —
+              strengthening, guiding, and consoling us in every circumstance.
+            </p>
+            <a
+              href="https://catenabible.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-sm text-primary-700 hover:text-primary-900 inline-flex items-center gap-2"
+            >
+              Read the Bible online <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+          <div className="relative bg-white border border-line rounded-3xl p-9 overflow-hidden">
+            <span className="absolute top-0 left-8 h-1.5 rounded-b-md bg-primary-600" style={{ width: "3.25rem" }} aria-hidden="true"></span>
+            <p className="text-xs tracking-[0.2em] uppercase font-bold text-primary-700 mt-3">
+              Doctrine
+            </p>
+            <h3 className="font-serif font-semibold text-2xl text-ink mt-2 mb-3">
+              Deepen your faith with the Catechism
+            </h3>
+            <p className="text-ink-soft mb-5 leading-relaxed">
+              The Catechism of the Catholic Church presents the faith clearly and completely.
+              Regular reading helps you understand what the Church believes and teaches.
+            </p>
+            <a
+              href="https://www.vatican.va/archive/ENG0015/_INDEX.HTM"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-sm text-primary-700 hover:text-primary-900 inline-flex items-center gap-2"
+            >
+              Read the Catechism online <span aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ NEWS / EVENTS + UPCOMING FEASTS ============ */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-14">
+          {/* Left: news & events */}
+          <div>
+            <p className="text-xs tracking-[0.2em] uppercase font-bold text-primary-700">
+              From the Parish
+            </p>
+            <h2 className="font-serif font-medium text-ink text-3xl md:text-4xl mt-2 mb-2">
+              Latest News &amp; Events
+            </h2>
+            <div className="flex gap-2 mb-7">
+              <Link
+                to="/announcements"
+                className="text-sm font-bold text-primary-700 hover:text-primary-900 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-primary-50 transition-colors"
+              >
+                All Announcements <span aria-hidden="true">→</span>
+              </Link>
+              <Link
+                to="/events"
+                className="text-sm font-bold text-primary-700 hover:text-primary-900 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-primary-50 transition-colors"
+              >
+                All Events <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+
+            {loading ? (
+              <div className="text-center py-16">
+                <div className="inline-block animate-spin rounded-full h-11 w-11 border-4 border-primary-200 border-t-primary-600"></div>
+                <p className="text-ink-soft text-sm font-medium mt-4">Loading content…</p>
+              </div>
+            ) : announcements.length === 0 && events.length === 0 ? (
+              <div className="text-center py-14 bg-white rounded-3xl border border-line">
+                <p className="text-ink-soft font-medium">
+                  No announcements or events at this time. Please check back soon.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                {announcements.map((announcement) => (
+                  <Link
+                    key={announcement._id}
+                    to={`/announcements/${announcement._id}`}
+                    className="group flex gap-0 bg-white rounded-2xl overflow-hidden border border-line hover:border-primary-600 hover:shadow-xl hover:shadow-primary-600/5 transition-all duration-200"
+                  >
+                    <div className="relative w-32 sm:w-40 flex-shrink-0 bg-primary-600 overflow-hidden">
+                      {announcement.image ? (
+                        <img
+                          src={announcement.image}
+                          alt={announcement.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="font-serif text-white/90 text-3xl">✝</span>
+                        </div>
+                      )}
+                      <span className="absolute top-2 left-2 px-2 py-0.5 bg-white/95 text-primary-800 text-[0.6rem] font-bold rounded-full uppercase tracking-wide">
+                        News
+                      </span>
+                    </div>
+                    <div className="p-5 min-w-0">
+                      <h3 className="font-serif font-semibold text-lg text-ink group-hover:text-primary-800 transition-colors line-clamp-2">
+                        {announcement.title}
                       </h3>
-                      {saintOfTheDay.saints[0] && (
-                        <>
-                          {saintOfTheDay.saints[0].type !== "none" && (
-                            <p className="text-primary-800 font-bold mb-3 text-lg">
-                              {saintOfTheDay.saints[0].type === "feast"
-                                ? "Feast"
-                                : saintOfTheDay.saints[0].type === "memorial"
-                                ? "Memorial"
-                                : saintOfTheDay.saints[0].type === "optional"
-                                ? "Optional Memorial"
-                                : "Saint"}
-                            </p>
-                          )}
-                          {saintOfTheDay.saints[0].type !== "none" && (
-                            <p className="text-gray-800 text-base leading-relaxed mb-3 font-medium">
-                              {saintOfTheDay.saints[0].description}
-                            </p>
-                          )}
-                          <p className="text-primary-800 font-semibold mt-4 text-base">
-                            {new Date(saintOfTheDay.date).toLocaleDateString(
-                              "en-US",
-                              {
-                                weekday: "long",
-                                year: "numeric",
+                      <p className="text-sm text-ink-soft mt-1 line-clamp-2 leading-relaxed">
+                        {announcement.content}
+                      </p>
+                      <p className="text-xs font-bold text-primary-700 mt-3">
+                        {new Date(announcement.date).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+
+                {events.map((event) => (
+                  <Link
+                    key={event._id}
+                    to="/events"
+                    className="group flex gap-0 bg-white rounded-2xl overflow-hidden border border-line hover:border-primary-600 hover:shadow-xl hover:shadow-primary-600/5 transition-all duration-200"
+                  >
+                    <div className="relative w-32 sm:w-40 flex-shrink-0 bg-gold/90 overflow-hidden flex items-center justify-center">
+                      {event.image ? (
+                        <img
+                          src={event.image}
+                          alt={event.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="text-center text-white">
+                          <div className="font-display text-2xl leading-none">
+                            {new Date(event.startDate).toLocaleDateString("en-US", { day: "numeric" })}
+                          </div>
+                          <div className="text-[0.6rem] font-bold uppercase tracking-widest mt-0.5">
+                            {new Date(event.startDate).toLocaleDateString("en-US", { month: "short" })}
+                          </div>
+                        </div>
+                      )}
+                      <span className="absolute top-2 left-2 px-2 py-0.5 bg-white/95 text-gold text-[0.6rem] font-bold rounded-full uppercase tracking-wide">
+                        Event
+                      </span>
+                    </div>
+                    <div className="p-5 min-w-0">
+                      <h3 className="font-serif font-semibold text-lg text-ink group-hover:text-primary-800 transition-colors line-clamp-2">
+                        {event.title}
+                      </h3>
+                      <p className="text-sm text-ink-soft mt-1 line-clamp-2 leading-relaxed">
+                        {event.description}
+                      </p>
+                      <p className="text-xs font-bold text-primary-700 mt-3">
+                        {new Date(event.startDate).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                        {event.location ? ` · ${event.location}` : ""}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Right: upcoming feasts */}
+          <div>
+            <p className="text-xs tracking-[0.2em] uppercase font-bold text-primary-700">
+              The Calendar
+            </p>
+            <h2 className="font-serif font-medium text-ink text-3xl md:text-4xl mt-2 mb-7">
+              Upcoming Feasts
+            </h2>
+            {upcomingFeasts.length > 0 ? (
+              <div className="bg-white rounded-3xl border border-line overflow-hidden">
+                <ul className="divide-y divide-line">
+                  {upcomingFeasts.slice(0, 9).map((feastDay) => {
+                    const colorData = feastColors[feastDay.date];
+                    const colorHex = colorData?.hex || "#356c48";
+                    const feastSaint = feastDay.saints[0];
+                    return (
+                      <li key={feastDay.date} className="px-5 py-4 hover:bg-ivory-2/60 transition-colors">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-primary-700">
+                              {new Date(feastDay.date).toLocaleDateString("en-US", {
+                                weekday: "short",
                                 month: "long",
                                 day: "numeric",
-                              }
+                              })}
+                            </p>
+                            <h4 className="font-serif font-semibold text-ink mt-0.5">
+                              {feastDay.saints.map((s) => s.name).join(" & ")}
+                            </h4>
+                            {feastSaint && feastSaint.type !== "none" && (
+                              <span className="inline-block mt-1.5 px-2 py-0.5 bg-primary-50 text-primary-800 text-[0.68rem] font-bold rounded-full border border-primary-200">
+                                {saintTypeLabel(feastSaint.type)}
+                              </span>
                             )}
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Upcoming Feasts */}
-              {upcomingFeasts.length > 0 && (
-                <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                  {/* Card Header */}
-                  <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-5 py-3 border-b border-primary-800">
-                    <h2 className="text-xl md:text-2xl font-bold text-white">
-                      Upcoming Feasts
-                    </h2>
-                    <p className="text-white text-sm mt-1 font-medium opacity-95">
-                      Mark your calendar for these important celebrations
-                    </p>
-                  </div>
-
-                  {/* Card Body */}
-                  <div className="divide-y divide-gray-200">
-                    {upcomingFeasts.slice(0, 9).map((feastDay) => {
-                      const colorData = feastColors[feastDay.date];
-                      const colorHex = colorData?.hex || "#16a34a"; // Default to green if color not loaded
-
-                      return (
-                        <div
-                          key={feastDay.date}
-                          className="px-5 py-3 hover:bg-gray-50 transition-colors duration-200"
-                        >
-                          <div className="flex items-center justify-between gap-3">
-                            {/* Left side: Date and Feast Name */}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-primary-800 font-bold text-sm mb-1">
-                                {new Date(feastDay.date).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    weekday: "long",
-                                    month: "long",
-                                    day: "numeric",
-                                    year: "numeric",
-                                  }
-                                )}
-                              </p>
-                              <h4 className="text-base font-bold text-gray-900">
-                                {feastDay.saints
-                                  .map((saint) => saint.name)
-                                  .join(" and ")}
-                              </h4>
-                              {feastDay.saints[0] &&
-                                feastDay.saints[0].type !== "none" && (
-                                  <span className="inline-block mt-1 px-2 py-0.5 bg-primary-100 text-primary-900 text-sm font-bold rounded-full border border-primary-300">
-                                    {feastDay.saints[0].type === "feast"
-                                      ? "Feast"
-                                      : feastDay.saints[0].type === "memorial"
-                                      ? "Memorial"
-                                      : feastDay.saints[0].type === "optional"
-                                      ? "Optional"
-                                      : "Saint"}
-                                  </span>
-                                )}
-                            </div>
-
-                            {/* Right side: Circular Avatar with Liturgical Color */}
-                            <div className="flex-shrink-0">
-                              <div
-                                className="w-10 h-10 rounded-full border-2 border-gray-300 shadow-md"
-                                style={{ backgroundColor: colorHex }}
-                                title={
-                                  colorData?.color
-                                    ? `Liturgical Color: ${colorData.color}`
-                                    : "Liturgical Color"
-                                }
-                              />
-                            </div>
                           </div>
-
-                          {/* Description (only for feasts with type !== 'none') */}
-                          {feastDay.saints[0] &&
-                            feastDay.saints[0].type !== "none" && (
-                              <p className="text-gray-600 text-xs leading-relaxed mt-2">
-                                {feastDay.saints[0].description}
-                              </p>
-                            )}
+                          <span
+                            className="flex-shrink-0 w-9 h-9 rounded-full border-2 border-white shadow ring-1 ring-line"
+                            style={{ backgroundColor: colorHex }}
+                            title={colorData?.color ? `Liturgical colour: ${colorData.color}` : "Liturgical colour"}
+                          />
                         </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ) : (
+              <div className="bg-white rounded-3xl border border-line p-8 text-center text-ink-soft">
+                The calendar of feasts will appear here.
+              </div>
+            )}
           </div>
+        </div>
+      </section>
+
+      {/* ============ CLOSING VERSE ============ */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div className="lit-soft-panel rounded-3xl px-6 py-14 sm:py-16 text-center">
+          <p className="font-serif italic font-medium text-ink text-2xl sm:text-3xl md:text-4xl leading-snug max-w-[24ch] mx-auto">
+            “Labour without stopping; do all the good you can while you still have the time.”
+          </p>
+          <p className="mt-5 text-xs tracking-[0.2em] uppercase font-bold text-primary-800">
+            St. John of God · Patron of the Sick
+          </p>
         </div>
       </section>
     </Layout>

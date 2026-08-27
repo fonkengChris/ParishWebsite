@@ -5,6 +5,9 @@ import { getTodayLiturgicalColor } from '../utils/liturgicalCalendar.js';
  * Setup scheduled tasks
  */
 export function setupScheduler() {
+  // Parish is in Limbe, Cameroon (WAT). Override with SCHEDULER_TIMEZONE if needed.
+  const timezone = process.env.SCHEDULER_TIMEZONE || 'Africa/Douala';
+
   // Run at midnight every day to update liturgical color
   // Cron expression: '0 0 * * *' means "at 00:00 (midnight) every day"
   cron.schedule('0 0 * * *', async () => {
@@ -17,7 +20,7 @@ export function setupScheduler() {
     }
   }, {
     scheduled: true,
-    timezone: "America/New_York" // Adjust to your parish's timezone
+    timezone
   });
 
   // Also run immediately on server start to log current color

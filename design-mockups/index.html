@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Design Directions · St. John of God Parish</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#221e17;--soft:#6a6153;--line:#e2d8c4;--gold:#a67c3d}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,sans-serif;background:#f6f1e7;color:var(--ink);line-height:1.6}
+  .wrap{max-width:1080px;margin:0 auto;padding:64px 28px}
+  h1{font-family:"Cormorant Garamond",serif;font-weight:600;font-size:clamp(2.4rem,5vw,3.6rem);margin:0 0 .2em}
+  .sub{color:var(--soft);max-width:60ch;margin:0 0 48px;font-size:1.05rem}
+  .eyebrow{font-size:.72rem;letter-spacing:.26em;text-transform:uppercase;font-weight:700;color:var(--gold)}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+  a.card{display:block;text-decoration:none;color:inherit;background:#fff;border:1px solid var(--line);
+    border-radius:14px;padding:28px 26px;transition:.2s}
+  a.card:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(80,60,20,.14);border-color:var(--gold)}
+  .card .n{font-family:"Cormorant Garamond",serif;font-size:1.1rem;color:var(--gold)}
+  .card h2{font-family:"Cormorant Garamond",serif;font-weight:600;font-size:1.7rem;margin:.2em 0 .4em}
+  .card p{color:var(--soft);font-size:.92rem;margin:0 0 16px}
+  .card .tags{font-size:.74rem;color:var(--ink);font-weight:600}
+  .swatch{display:flex;gap:6px;margin-top:16px}
+  .swatch span{width:20px;height:20px;border-radius:50%;box-shadow:0 0 0 1px var(--line)}
+  .note{margin-top:44px;font-size:.9rem;color:var(--soft);border-top:1px solid var(--line);padding-top:24px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="eyebrow">St. John of God Parish · Design Directions</span>
+  <h1>Three ways to be reverent.</h1>
+  <p class="sub">Each direction is a working mockup of the home page, built with the real parish content.
+    Every one wires into the parish's <strong>liturgical color system</strong> — use the season switcher
+    in the top-right of each page to watch the whole design change with the Church's calendar.</p>
+
+  <a class="card" href="4-communion-sanctuary.html" style="display:block;margin-bottom:22px;border-color:var(--gold);border-width:2px;background:linear-gradient(180deg,#fff,#fbf5ea)">
+    <div class="n">IV. — Recommended</div>
+    <h2>Communion × Sanctuary</h2>
+    <p>The chosen hybrid: Communion's warm, welcoming home page as the base, with Sanctuary's dark
+      arch-of-light borrowed as one dramatic "Come and pray with us" band. Welcome up top, awe in the
+      middle, warmth throughout.</p>
+    <div class="tags">Warm base · one reverent, cinematic moment</div>
+    <div class="swatch"><span style="background:#fbf7f0"></span><span style="background:#c29a4e"></span><span style="background:#141210"></span><span style="background:#3f7d54"></span></div>
+  </a>
+
+  <div class="grid">
+    <a class="card" href="1-breviary.html">
+      <div class="n">I.</div>
+      <h2>Breviary</h2>
+      <p>Scholarly and quiet, like an illuminated missal. Parchment, Cormorant Garamond, gold hairlines,
+        drop caps, and a vertical liturgical-color rail.</p>
+      <div class="tags">Editorial · Reverent · Text-forward</div>
+      <div class="swatch"><span style="background:#f6f1e7"></span><span style="background:#a67c3d"></span><span style="background:#3f7d54"></span><span style="background:#221e17"></span></div>
+    </a>
+    <a class="card" href="2-sanctuary.html">
+      <div class="n">II.</div>
+      <h2>Sanctuary</h2>
+      <p>Immersive and cinematic — standing inside the church at dusk. Stone-dark, an arch of light,
+        luminous Playfair type. The liturgical color glows like stained glass.</p>
+      <div class="tags">Dramatic · Modern · Photographic</div>
+      <div class="swatch"><span style="background:#141210"></span><span style="background:#ece4d4"></span><span style="background:#4c9d6a"></span><span style="background:#d8ad5b"></span></div>
+    </a>
+    <a class="card" href="3-communion.html">
+      <div class="n">III.</div>
+      <h2>Communion</h2>
+      <p>Warm, bright, and welcoming — the parish as a living community. Ivory and gold, soft Fraunces
+        display, rounded-arch photo cards, generous whitespace.</p>
+      <div class="tags">Warm · Friendly · Approachable</div>
+      <div class="swatch"><span style="background:#fbf7f0"></span><span style="background:#c29a4e"></span><span style="background:#3f7d54"></span><span style="background:#2a241c"></span></div>
+    </a>
+  </div>
+
+  <p class="note">Open each file in your browser (or the links above). Tell me which direction to build out
+    across the real React app — I can also blend elements between them.</p>
+</div>
+</body>
+</html>

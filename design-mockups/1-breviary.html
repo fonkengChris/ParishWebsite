@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Direction 1 — Breviary · St. John of God Parish</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============ LITURGICAL COLOR SYSTEM (the site breathes with the calendar) ============ */
+  :root[data-season="ordinary"]{ --lit:#3f7d54; --lit-deep:#2c5a3c; --lit-soft:#e5efe7; }
+  :root[data-season="advent"]  { --lit:#5b4a86; --lit-deep:#40325f; --lit-soft:#ece8f2; }
+  :root[data-season="feast"]   { --lit:#a67c3d; --lit-deep:#7c5a26; --lit-soft:#f3ecdd; }
+  :root[data-season="martyr"]  { --lit:#9e3131; --lit-deep:#742323; --lit-soft:#f3e2e0; }
+  :root[data-season="rose"]    { --lit:#b56a7a; --lit-deep:#8c4d5b; --lit-soft:#f4e6ea; }
+
+  :root{
+    --parch:#f6f1e7; --parch-2:#efe8d9; --ink:#221e17; --ink-soft:#5b5344;
+    --gold:#a67c3d; --rule:#d8cdb6;
+    --serif:"Cormorant Garamond",Georgia,serif;
+    --sans:"Inter",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--parch);color:var(--ink);font-family:var(--sans);line-height:1.65;
+    -webkit-font-smoothing:antialiased;font-size:16px}
+  a{color:inherit}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+
+  /* Eyebrow / structural label */
+  .eyebrow{font-family:var(--sans);font-size:.72rem;letter-spacing:.28em;text-transform:uppercase;
+    font-weight:600;color:var(--gold)}
+  .rule{height:1px;background:var(--rule);border:0;margin:0}
+
+  /* ============ LITURGICAL COLOR RAIL — the signature ============ */
+  .rail{position:fixed;left:0;top:0;bottom:0;width:8px;background:var(--lit);z-index:40;
+    transition:background .5s ease}
+  @media(max-width:640px){.rail{width:5px}}
+
+  /* Season preview switcher */
+  .switcher{position:fixed;top:14px;right:14px;z-index:50;display:flex;gap:6px;align-items:center;
+    background:rgba(255,255,255,.86);backdrop-filter:blur(6px);border:1px solid var(--rule);
+    border-radius:999px;padding:6px 8px;box-shadow:0 6px 24px rgba(40,30,10,.12)}
+  .switcher small{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);
+    padding-left:6px;font-weight:600}
+  .switcher button{width:22px;height:22px;border-radius:50%;border:2px solid #fff;cursor:pointer;
+    box-shadow:0 0 0 1px var(--rule);padding:0}
+  .switcher button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .sw-ord{background:#3f7d54}.sw-adv{background:#5b4a86}.sw-fea{background:#a67c3d}
+  .sw-mar{background:#9e3131}.sw-ros{background:#b56a7a}
+
+  /* ============ MASTHEAD ============ */
+  header.top{border-bottom:1px solid var(--rule);background:var(--parch)}
+  .masthead{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+  .brand{display:flex;align-items:baseline;gap:14px;text-decoration:none}
+  .brand .mark{font-family:var(--serif);font-size:1.9rem;line-height:1;color:var(--lit);
+    transition:color .5s ease}
+  .brand .name{font-family:var(--serif);font-size:1.55rem;font-weight:600;letter-spacing:.01em}
+  .brand .name small{display:block;font-family:var(--sans);font-size:.62rem;letter-spacing:.24em;
+    text-transform:uppercase;color:var(--ink-soft);font-weight:600;margin-top:3px}
+  nav.main{display:flex;gap:26px}
+  nav.main a{font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+    text-decoration:none;color:var(--ink-soft);padding:4px 0;border-bottom:2px solid transparent}
+  nav.main a:hover,nav.main a.active{color:var(--ink);border-color:var(--lit)}
+  @media(max-width:860px){nav.main{display:none}}
+
+  /* ============ HERO — Today in the liturgical year ============ */
+  .hero{padding:64px 0 56px;position:relative}
+  .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:start}
+  @media(max-width:860px){.hero-grid{grid-template-columns:1fr;gap:40px}}
+
+  .today-tag{display:inline-flex;align-items:center;gap:10px;margin-bottom:22px}
+  .today-tag .dot{width:12px;height:12px;border-radius:50%;background:var(--lit);
+    box-shadow:0 0 0 4px var(--lit-soft);transition:all .5s ease}
+  .season-name{font-family:var(--serif);font-style:italic;font-size:1.35rem;color:var(--lit-deep);
+    transition:color .5s ease}
+
+  .hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(3rem,7vw,5.4rem);line-height:.98;
+    letter-spacing:-.01em;margin:.1em 0 .05em}
+  .hero h1 em{font-style:italic;color:var(--lit-deep);transition:color .5s ease}
+  .holy-ground{font-family:var(--serif);font-style:italic;font-size:clamp(1.4rem,3.2vw,2.1rem);
+    color:var(--ink-soft);margin:0 0 26px}
+  .lede{max-width:46ch;font-size:1.02rem;color:var(--ink-soft);margin:0 0 30px}
+  /* drop cap */
+  .lede::first-letter{font-family:var(--serif);font-size:3.1rem;line-height:.8;float:left;
+    padding:6px 12px 0 0;color:var(--lit);font-weight:600;transition:color .5s ease}
+
+  .cta-row{display:flex;gap:14px;flex-wrap:wrap}
+  .btn{font-family:var(--sans);font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;
+    font-weight:600;text-decoration:none;padding:14px 26px;border-radius:2px;transition:.2s}
+  .btn-solid{background:var(--lit);color:#fff}
+  .btn-solid:hover{background:var(--lit-deep)}
+  .btn-ghost{border:1px solid var(--ink);color:var(--ink)}
+  .btn-ghost:hover{background:var(--ink);color:var(--parch)}
+
+  /* Arched "today" panel — the illuminated frame */
+  .today-card{position:relative}
+  .arch{position:relative;overflow:hidden;border-radius:180px 180px 6px 6px;
+    border:1px solid var(--rule);box-shadow:0 22px 60px rgba(40,30,10,.16)}
+  .arch::after{content:"";position:absolute;inset:0;border-radius:inherit;
+    box-shadow:inset 0 0 0 6px rgba(255,255,255,.5),inset 0 0 0 7px var(--lit);
+    transition:box-shadow .5s ease;pointer-events:none}
+  .arch img{display:block;width:100%;height:420px;object-fit:cover;filter:saturate(.92)}
+  .arch .caption{position:absolute;left:0;right:0;bottom:0;padding:26px 24px 22px;
+    background:linear-gradient(to top,rgba(20,16,10,.82),rgba(20,16,10,0));color:#f4ecd9}
+  .arch .caption .k{font-size:.66rem;letter-spacing:.24em;text-transform:uppercase;
+    color:var(--gold);font-weight:700}
+  .arch .caption h3{font-family:var(--serif);font-weight:600;font-size:1.55rem;margin:.15em 0 .1em}
+  .arch .caption p{font-size:.86rem;margin:0;opacity:.85;font-style:normal}
+
+  /* Verse strip */
+  .verse{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    background:var(--lit-soft);transition:background .5s ease}
+  .verse .wrap{padding:40px 28px;text-align:center}
+  .verse p{font-family:var(--serif);font-style:italic;font-size:clamp(1.5rem,3.6vw,2.2rem);
+    line-height:1.35;max-width:24ch;margin:0 auto;color:var(--ink)}
+  .verse cite{display:block;font-family:var(--sans);font-style:normal;font-size:.72rem;
+    letter-spacing:.24em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-top:18px}
+
+  /* ============ FORMATION (two paths) ============ */
+  section.formation{padding:72px 0}
+  .sec-head{display:flex;align-items:baseline;gap:18px;margin-bottom:34px}
+  .sec-head h2{font-family:var(--serif);font-weight:600;font-size:clamp(2rem,4.5vw,2.9rem);margin:0}
+  .sec-head .num{font-family:var(--serif);font-style:italic;font-size:1.1rem;color:var(--gold)}
+  .paths{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--rule)}
+  @media(max-width:720px){.paths{grid-template-columns:1fr}}
+  .path{padding:38px 34px}
+  .path+.path{border-left:1px solid var(--rule)}
+  @media(max-width:720px){.path+.path{border-left:0;border-top:1px solid var(--rule)}}
+  .path h3{font-family:var(--serif);font-weight:600;font-size:1.7rem;margin:.4em 0 .3em}
+  .path p{color:var(--ink-soft);font-size:.96rem;margin:0 0 20px}
+  .path a{font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;
+    color:var(--lit-deep);text-decoration:none;border-bottom:2px solid var(--lit);padding-bottom:3px;
+    transition:.2s}
+  .path a:hover{color:var(--ink)}
+
+  /* ============ FOOTER ============ */
+  footer{background:var(--ink);color:#d9d0bd;margin-top:20px}
+  footer .wrap{padding:56px 28px 40px}
+  .foot-top{display:flex;justify-content:space-between;gap:32px;flex-wrap:wrap;
+    border-bottom:1px solid rgba(255,255,255,.12);padding-bottom:30px}
+  .foot-brand .name{font-family:var(--serif);font-size:1.7rem;color:#fff}
+  .foot-brand p{max-width:36ch;font-size:.9rem;color:#b7ad99;margin:.5em 0 0}
+  .foot-links{display:flex;gap:56px;flex-wrap:wrap}
+  .foot-links h4{font-size:.68rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);
+    margin:0 0 14px}
+  .foot-links a{display:block;color:#cfc6b3;text-decoration:none;font-size:.9rem;padding:5px 0}
+  .foot-links a:hover{color:#fff}
+  .foot-bottom{padding-top:24px;font-size:.78rem;color:#8f8672;display:flex;justify-content:space-between;
+    flex-wrap:wrap;gap:10px}
+
+  a:focus-visible,button:focus-visible{outline:2px solid var(--lit);outline-offset:3px}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="rail" aria-hidden="true"></div>
+
+<div class="switcher" role="group" aria-label="Preview liturgical season">
+  <small>Season</small>
+  <button class="sw-ord" title="Ordinary Time" onclick="setSeason('ordinary')"></button>
+  <button class="sw-adv" title="Advent / Lent" onclick="setSeason('advent')"></button>
+  <button class="sw-fea" title="Feast / Christmas / Easter" onclick="setSeason('feast')"></button>
+  <button class="sw-mar" title="Martyrs / Passion / Pentecost" onclick="setSeason('martyr')"></button>
+  <button class="sw-ros" title="Gaudete / Laetare" onclick="setSeason('rose')"></button>
+</div>
+
+<header class="top">
+  <div class="wrap masthead">
+    <a class="brand" href="#">
+      <span class="mark">✝</span>
+      <span class="name">St. John of God<small>Buea Diocese · Limbe</small></span>
+    </a>
+    <nav class="main">
+      <a href="#" class="active">Home</a>
+      <a href="#">Mass Times</a>
+      <a href="#">The Faith</a>
+      <a href="#">Parish Life</a>
+      <a href="#">Give</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="today-tag">
+          <span class="dot" aria-hidden="true"></span>
+          <span class="eyebrow">Wednesday · 5 August</span>
+          <span class="season-name" id="seasonLabel">The Eighteenth Week in Ordinary Time</span>
+        </div>
+        <h1>A parish on <em>Holy Ground</em>.</h1>
+        <p class="holy-ground">St. John of God Parish — where the sick are served and the faithful gathered.</p>
+        <p class="lede">Every day the Church keeps a colour, a season, and a company of saints. Our
+          doors, and this page, keep them with her — so that whenever you arrive, you arrive in time.</p>
+        <div class="cta-row">
+          <a class="btn btn-solid" href="#">View Mass Times</a>
+          <a class="btn btn-ghost" href="#">Plan a Visit</a>
+        </div>
+      </div>
+
+      <div class="today-card">
+        <div class="arch">
+          <img src="../frontend/public/images/inside-view.jpeg" alt="Interior of St. John of God Parish church" />
+          <div class="caption">
+            <div class="k">Saint of the Day</div>
+            <h3>Our Lady of the Snows</h3>
+            <p>Dedication of the Basilica of St Mary Major — a memorial of the Blessed Virgin.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="verse">
+    <div class="wrap">
+      <p>“Labour without stopping; do all the good you can while you still have the time.”</p>
+      <cite>St. John of God · Patron of the Sick</cite>
+    </div>
+  </div>
+
+  <section class="formation">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="num">i.</span>
+        <h2>Grow in the Faith</h2>
+      </div>
+      <div class="paths">
+        <div class="path">
+          <span class="eyebrow">Scripture</span>
+          <h3>The Holy Bible, daily</h3>
+          <p>God speaks through His Word — strengthening, guiding, consoling us in every circumstance.
+            Make a habit of the daily readings alongside the parish.</p>
+          <a href="#">Read the Bible online →</a>
+        </div>
+        <div class="path">
+          <span class="eyebrow">Doctrine</span>
+          <h3>The Catechism, unhurried</h3>
+          <p>The Catechism of the Catholic Church sets out the faith clearly and completely. Read a little,
+            often, and understand what the Church believes and why.</p>
+          <a href="#">Read the Catechism online →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="foot-brand">
+        <div class="name">St. John of God Parish</div>
+        <p>Serving our community with faith, hope, and love, in the Diocese of Buea. Join us in worship
+          and fellowship on Holy Ground.</p>
+      </div>
+      <div class="foot-links">
+        <div>
+          <h4>Worship</h4>
+          <a href="#">Mass Schedule</a><a href="#">Confession</a><a href="#">Benediction</a><a href="#">Prayers</a>
+        </div>
+        <div>
+          <h4>Parish</h4>
+          <a href="#">Announcements</a><a href="#">Events</a><a href="#">Ministries</a><a href="#">Gallery</a>
+        </div>
+        <div>
+          <h4>Visit</h4>
+          <a href="#">Limbe, Southwest Region</a><a href="#">Contact the Office</a><a href="#">Give Online</a>
+        </div>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 St. John of God Parish. All rights reserved.</span>
+      <span>Buea Diocese · Cameroon</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const labels = {
+    ordinary:"The Eighteenth Week in Ordinary Time",
+    advent:"The Second Week of Advent",
+    feast:"The Nativity of the Lord",
+    martyr:"The Feast of the Holy Martyrs",
+    rose:"Gaudete Sunday · Third of Advent"
+  };
+  function setSeason(s){
+    document.documentElement.setAttribute('data-season',s);
+    document.getElementById('seasonLabel').textContent = labels[s];
+  }
+  setSeason('ordinary');
+</script>
+</body>
+</html>

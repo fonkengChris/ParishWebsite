@@ -7,17 +7,27 @@
   line-height: 1.6;
   font-weight: 400;
   
-  /* Default primary colors (will be overridden by ThemeProvider) */
-  --color-primary-50: #f0f9ff;
-  --color-primary-100: #e0f2fe;
-  --color-primary-200: #bae6fd;
-  --color-primary-300: #7dd3fc;
-  --color-primary-400: #38bdf8;
-  --color-primary-500: #0ea5e9;
-  --color-primary-600: #0284c7;
-  --color-primary-700: #0369a1;
-  --color-primary-800: #075985;
-  --color-primary-900: #0c4a6e;
+  /* Default primary colors — muted liturgical green (Ordinary Time).
+     Overridden per-season by ThemeProvider. */
+  --color-primary-50: #edf5ef;
+  --color-primary-100: #d6e8dc;
+  --color-primary-200: #aed2ba;
+  --color-primary-300: #7fb593;
+  --color-primary-400: #4f9a6b;
+  --color-primary-500: #3f7d54;
+  --color-primary-600: #356c48;
+  --color-primary-700: #2c5a3c;
+  --color-primary-800: #244831;
+  --color-primary-900: #1c3826;
+
+  /* Warm parchment / ink identity (Communion base) */
+  --ivory: #fbf7f0;
+  --ivory-2: #f4ecdf;
+  --ink: #2a241c;
+  --ink-soft: #6a6153;
+  --gold: #c29a4e;
+  --line: #e7ddca;
+  --stone: #141210;
   
   /* Typography variables (will be overridden by ThemeProvider based on theme) */
   --font-weight-normal: 400;
@@ -45,6 +55,9 @@ body {
   min-height: 100vh;
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-normal);
+  background-color: var(--ivory);
+  color: var(--ink);
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
 #root {
@@ -167,6 +180,93 @@ body {
   /* Ensure select elements have proper padding on the right */
   select:not([multiple]) {
     padding-right: 2.5rem;
+  }
+}
+
+/* ============================================================
+   Communion × Sanctuary — signature design components
+   (arch motif + the one dark, reverent "Come and Pray" band)
+   These recolor with the liturgical season via --color-primary-*.
+   ============================================================ */
+@layer components {
+  /* Rounded (Romanesque) arch frame for hero imagery */
+  .arch-frame {
+    position: relative;
+    overflow: hidden;
+    border: 5px solid #fff;
+    border-radius: 999px 999px 26px 26px;
+    box-shadow: 0 30px 70px rgba(80, 60, 20, 0.22);
+  }
+  .arch-frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--color-primary-500) 45%, transparent);
+    pointer-events: none;
+    transition: box-shadow 0.5s ease;
+  }
+
+  /* Soft season-tinted panel */
+  .lit-soft-panel {
+    background: color-mix(in srgb, var(--color-primary-500) 12%, var(--ivory));
+    border: 1px solid color-mix(in srgb, var(--color-primary-500) 22%, transparent);
+  }
+
+  /* The Sanctuary band: full-bleed stone with arch-of-light glow */
+  .sanctuary-band {
+    position: relative;
+    overflow: hidden;
+    background: var(--stone);
+  }
+  .sanctuary-band .s-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  .sanctuary-band .s-bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.4) saturate(0.85) contrast(1.05);
+  }
+  .sanctuary-band .s-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      /* season glow, kept high so it reads as light, not wash */
+      radial-gradient(120% 62% at 50% -14%,
+        color-mix(in srgb, var(--color-primary-600) 42%, transparent), transparent 58%),
+      /* legibility scrim: strongly darken the area the copy sits on */
+      radial-gradient(78% 68% at 50% 54%, rgba(12, 10, 9, 0.82), transparent 78%),
+      linear-gradient(to bottom, rgba(12, 10, 9, 0.7), rgba(12, 10, 9, 0.93));
+    transition: background 0.6s ease;
+  }
+
+  /* Ensure all copy in the band stays legible over imagery + glow */
+  .sanctuary-band .s-inner h2,
+  .sanctuary-band .s-inner p,
+  .sanctuary-band .s-inner .s-eyebrow,
+  .sanctuary-band .s-inner .s-hour {
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85), 0 1px 3px rgba(0, 0, 0, 0.7);
+  }
+  .sanctuary-band .s-arch {
+    position: absolute;
+    top: 8%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(520px, 74vw);
+    height: 84%;
+    border: 1px solid rgba(236, 228, 212, 0.16);
+    border-radius: 260px 260px 0 0;
+    z-index: 1;
+    box-shadow: 0 0 90px color-mix(in srgb, var(--color-primary-600) 34%, transparent) inset;
+    transition: box-shadow 0.6s ease;
+  }
+  .sanctuary-band .s-inner {
+    position: relative;
+    z-index: 2;
   }
 }
 
