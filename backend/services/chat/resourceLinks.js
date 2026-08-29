@@ -8,15 +8,22 @@ export function getFrontendBaseUrl() {
 }
 
 export function buildResourceLink(type, id) {
+  const base = getFrontendBaseUrl();
+
+  // Mass schedule has no per-item detail page — always link to the page.
+  if (type === 'mass-schedule') {
+    return `${base}/mass-schedule`;
+  }
+
   if (!id) {
     return null;
   }
 
-  const base = getFrontendBaseUrl();
-
   switch (type) {
     case 'announcement':
       return `${base}/announcements/${id}`;
+    case 'event':
+      return `${base}/events#resource-${id}`;
     case 'prayer':
       return `${base}/prayers#resource-${id}`;
     case 'sermon':

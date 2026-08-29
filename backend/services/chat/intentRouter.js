@@ -135,6 +135,8 @@ const ROUTERS = [
   routeAnnouncementsIntent,
 ];
 
+const REPLY_DIVIDER = '\n\n———\n\n';
+
 export async function routeIntent(message) {
   for (const router of ROUTERS) {
     const routed = await router(message);
@@ -145,6 +147,15 @@ export async function routeIntent(message) {
   return null;
 }
 
+/**
+ * Run every router so a single message can answer several intents at once
+ * (e.g. "Mass times and any upcoming events?").
+ */
+export async function routeIntents(message) {
+  const routed = await Promise.all(ROUTERS.map((router) => router(message)));
+  return routed.filter(Boolean);
+}
+
 export function getOutOfScopeReply() {
   return (
     'I can help with Mass times, upcoming events, prayers, sermons, and parish announcements. ' +
@@ -153,23 +164,24 @@ export function getOutOfScopeReply() {
   );
 }
 
-export async function buildRuleBasedReply(routed) {
-  return formatToolResult(routed.tool, routed.result);
+const SOURCE_TYPE_MAP = {
+  getMassSchedule: 'mass-schedule',
+  getUpcomingEvents: 'event',
+  getPrayers: 'prayer',
+  getSermons: 'sermon',
+  getAnnouncements: 'announcement',
+};
+
+export async function buildRuleBasedReply(routedList) {
+  const parts = await Promise.all(
+    routedList.map((routed) => formatToolResult(routed.tool, routed.result))
+  );
+  return parts.filter(Boolean).join(REPLY_DIVIDER);
 }
 
-import { buildResourceLink } from './resourceLinks.js';
-
-export function buildRuleBasedSources(routed) {
+function buildSourcesForRouted(routed) {
   const { tool, result } = routed;
-  const sourceTypeMap = {
-    getMassSchedule: 'mass-schedule',
-    getUpcomingEvents: 'event',
-    getPrayers: 'prayer',
-    getSermons: 'sermon',
-    getAnnouncements: 'announcement',
-  };
-
-  const sourceType = sourceTypeMap[tool];
+  const sourceType = SOURCE_TYPE_MAP[tool];
   if (!sourceType) {
     return [];
   }
@@ -182,12 +194,9 @@ export function buildRuleBasedSources(routed) {
     result.announcements ||
     [];
 
-  return items.map((item) => {
-    const linkType = item.type === 'catechisis' ? 'catechisis' : sourceType;
-    return {
-      type: sourceType,
-      id: item.id,
-      url: buildResourceLink(linkType, item.id) || undefined,
-    };
-  });
+  return items.map((item) => ({ type: sourceType, id: item.id }));
+}
+
+export function buildRuleBasedSources(routedList) {
+  return routedList.flatMap((routed) => buildSourcesForRouted(routed));
 }

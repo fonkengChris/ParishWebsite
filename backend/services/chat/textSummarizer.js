@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { getOllamaConfig, isOllamaAvailable } from './ollamaClient.js';
+import { generateText } from 'ai';
+import { getChatModel, isAiAvailable } from './aiClient.js';
 
 const SUMMARY_LENGTH_THRESHOLD = 120;
 const PRIORITY_PATTERNS = {
@@ -119,30 +119,16 @@ export function summarizeLocally(text, { maxPoints = 2, kind = 'announcement' } 
   return formatAsBullets(points);
 }
 
-async function summarizeWithOllama(text, { title, kind }) {
-  const { baseUrl, model } = getOllamaConfig();
+async function summarizeWithAi(text, { title, kind }) {
   const config = KIND_CONFIG[kind] || KIND_CONFIG.announcement;
 
-  const response = await axios.post(
-    `${baseUrl}/api/chat`,
-    {
-      model,
-      messages: [
-        {
-          role: 'system',
-          content: config.prompt,
-        },
-        {
-          role: 'user',
-          content: `${config.label} title: ${title || 'Untitled'}\n\nFull text:\n${text}`,
-        },
-      ],
-      stream: false,
-    },
-    { timeout: 20000 }
-  );
+  const { text: summary } = await generateText({
+    model: getChatModel(),
+    system: config.prompt,
+    prompt: `${config.label} title: ${title || 'Untitled'}\n\nFull text:\n${text}`,
+  });
 
-  return response.data?.message?.content?.trim() || null;
+  return summary?.trim() || null;
 }
 
 /**
@@ -158,14 +144,14 @@ export async function summarizeForChat(text, { title = '', kind = 'announcement'
     return normalized;
   }
 
-  if (await isOllamaAvailable()) {
+  if (isAiAvailable()) {
     try {
-      const summary = await summarizeWithOllama(normalized, { title, kind });
+      const summary = await summarizeWithAi(normalized, { title, kind });
       if (summary) {
         return summary;
       }
     } catch (error) {
-      console.warn('Ollama summarization failed, using local summary:', error.message);
+      console.warn('AI summarization failed, using local summary:', error.message);
     }
   }
 

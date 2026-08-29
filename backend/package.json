@@ -10,7 +10,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "cross-env NODE_ENV=test jest",
+    "test": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest",
     "create-admin": "node scripts/createAdmin.js",
     "seed-schedules": "node scripts/seedMassSchedules.js",
     "seed-schedules:clear": "node scripts/seedMassSchedules.js --clear",
@@ -21,6 +21,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@ai-sdk/openai": "^4.0.51",
+    "ai": "^7.0.84",
     "axios": "^1.13.2",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",

@@ -3,6 +3,7 @@ import Layout from '../components/Layout';
 import LazyImage from '../components/LazyImage';
 import { eventsAPI } from '../services/api';
 import { cache, CACHE_KEYS } from '../utils/cache';
+import { useResourceHashScroll } from '../utils/resourceHashScroll';
 import type { Event } from '../types';
 
 export default function Events() {
@@ -34,6 +35,8 @@ export default function Events() {
     };
     fetchEvents();
   }, []);
+
+  useResourceHashScroll(loading);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -113,7 +116,8 @@ export default function Events() {
                   {upcomingEvents.map((event) => (
                     <div
                       key={event._id}
-                      className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 group"
+                      id={`resource-${event._id}`}
+                      className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 group scroll-mt-24"
                     >
                       {event.image && (
                         <div className="relative overflow-hidden h-56">
@@ -164,7 +168,8 @@ export default function Events() {
                   {pastEvents.map((event) => (
                     <div
                       key={event._id}
-                      className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 group opacity-75"
+                      id={`resource-${event._id}`}
+                      className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 group opacity-75 scroll-mt-24"
                     >
                       {event.image && (
                         <div className="relative overflow-hidden h-56">

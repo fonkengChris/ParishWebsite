@@ -98,6 +98,11 @@ export function formatMassScheduleReply(schedules, { dayOfWeek } = {}) {
     lines.push('');
   }
 
+  const scheduleLink = formatResourceLinkLine('mass-schedule', null, 'View Mass times');
+  if (scheduleLink) {
+    lines.push(scheduleLink.trim());
+  }
+
   lines.push('Visit the Mass Times page on our website for the complete weekly schedule.');
 
   return lines.join('\n').trim();
@@ -123,6 +128,11 @@ export async function formatEventsReply(events) {
       if (summary) {
         lines.push(indentSummary(summary));
       }
+    }
+
+    const eventLink = formatResourceLinkLine('event', event.id, 'View event');
+    if (eventLink) {
+      lines.push(eventLink);
     }
 
     lines.push('');

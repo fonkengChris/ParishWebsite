@@ -33,11 +33,15 @@ router.get('/', async (req, res) => {
 router.get('/:date', async (req, res) => {
   try {
     const dateStr = req.params.date;
-    const date = new Date(dateStr);
-    
-    if (isNaN(date.getTime())) {
-      return res.status(400).json({ 
-        message: 'Invalid date format. Use YYYY-MM-DD' 
+    // Parse YYYY-MM-DD into a local date. `new Date("YYYY-MM-DD")` parses as UTC midnight,
+    // which shifts to the previous day on servers with a negative UTC offset while the
+    // calendar logic reads local getMonth()/getDate().
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const date = new Date(y, (m || 0) - 1, d);
+
+    if (isNaN(date.getTime()) || !y || !m || !d) {
+      return res.status(400).json({
+        message: 'Invalid date format. Use YYYY-MM-DD'
       });
     }
     

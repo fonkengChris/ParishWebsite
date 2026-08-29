@@ -256,6 +256,32 @@ export function isGoodFriday(date, easter) {
 }
 
 /**
+ * Check if a date is Holy Thursday (Mass of the Lord's Supper) — white
+ * @param {Date} date - The date to check
+ * @param {Date} easter - Easter date for the year
+ * @returns {boolean}
+ */
+export function isHolyThursday(date, easter) {
+  const holyThursday = new Date(easter);
+  holyThursday.setDate(easter.getDate() - 3);
+
+  return date.getTime() === new Date(holyThursday.getFullYear(), holyThursday.getMonth(), holyThursday.getDate()).getTime();
+}
+
+/**
+ * Check if a date is Holy Saturday (the Easter Vigil is celebrated in white)
+ * @param {Date} date - The date to check
+ * @param {Date} easter - Easter date for the year
+ * @returns {boolean}
+ */
+export function isHolySaturday(date, easter) {
+  const holySaturday = new Date(easter);
+  holySaturday.setDate(easter.getDate() - 1);
+
+  return date.getTime() === new Date(holySaturday.getFullYear(), holySaturday.getMonth(), holySaturday.getDate()).getTime();
+}
+
+/**
  * Check if a date is Easter season
  * @param {Date} date - The date to check
  * @param {Date} easter - Easter date for the year
@@ -325,12 +351,104 @@ export function isLaetareSunday(date, easter) {
 }
 
 /**
+ * Compare two dates ignoring the time-of-day.
+ */
+function isSameDay(a, b) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+/**
+ * The Sundays of Advent, Lent, and Easter outrank solemnities and feasts (Table of Liturgical
+ * Days). When a solemnity or feast falls on one of these Sundays, the Sunday is celebrated and
+ * the solemnity is transferred. (Gaudete/Laetare/Palm Sunday/Pentecost are handled separately
+ * before this check.)
+ * @returns {boolean}
+ */
+export function isPrivilegedSunday(date, easter) {
+  if (date.getDay() !== 0) return false;
+  return isAdvent(date) || isLent(date, easter) || isEasterSeason(date, easter);
+}
+
+/**
+ * Observed date of the Immaculate Conception (Dec 8) for the given year. When Dec 8 is a Sunday
+ * of Advent it is transferred to Monday Dec 9.
+ * @returns {Date}
+ */
+export function getImmaculateConceptionDate(year) {
+  const d = new Date(year, 11, 8);
+  if (d.getDay() === 0) d.setDate(9);
+  return d;
+}
+
+/**
+ * Observed date of Saint Joseph (Mar 19) for the given year. Impeded by Holy Week or the Octave
+ * of Easter → anticipated to the Saturday before Palm Sunday; impeded by a Sunday of Lent →
+ * transferred to the following Monday.
+ * @returns {Date}
+ */
+export function getStJosephDate(year, easter = calculateEaster(year)) {
+  const nominal = new Date(year, 2, 19);
+  const palmSunday = new Date(easter); palmSunday.setDate(easter.getDate() - 7);
+  const easterOctaveEnd = new Date(easter); easterOctaveEnd.setDate(easter.getDate() + 7); // 2nd Sunday of Easter
+  if (nominal >= palmSunday && nominal <= easterOctaveEnd) {
+    const saturdayBeforePalmSunday = new Date(palmSunday); saturdayBeforePalmSunday.setDate(palmSunday.getDate() - 1);
+    return saturdayBeforePalmSunday;
+  }
+  if (nominal.getDay() === 0) {
+    nominal.setDate(nominal.getDate() + 1);
+  }
+  return nominal;
+}
+
+/**
+ * Observed date of the Annunciation (Mar 25) for the given year. Impeded by Holy Week or the
+ * Octave of Easter → transferred to the Monday after the Second Sunday of Easter; impeded by a
+ * Sunday of Lent → transferred to the following Monday.
+ * @returns {Date}
+ */
+export function getAnnunciationDate(year, easter = calculateEaster(year)) {
+  const nominal = new Date(year, 2, 25);
+  const palmSunday = new Date(easter); palmSunday.setDate(easter.getDate() - 7);
+  const easterOctaveEnd = new Date(easter); easterOctaveEnd.setDate(easter.getDate() + 7); // 2nd Sunday of Easter
+  if (nominal >= palmSunday && nominal <= easterOctaveEnd) {
+    const mondayAfterOctave = new Date(easterOctaveEnd); mondayAfterOctave.setDate(easterOctaveEnd.getDate() + 1);
+    return mondayAfterOctave;
+  }
+  if (nominal.getDay() === 0) {
+    nominal.setDate(nominal.getDate() + 1);
+  }
+  return nominal;
+}
+
+/**
+ * True when `date` is the nominal calendar date of a transferable solemnity that, this year, has
+ * been moved off that date. On such a date the solemnity must NOT be celebrated (its colour is
+ * shown on the observed date instead); the day takes the season colour.
+ * @returns {boolean}
+ */
+function isTransferredSolemnityNominalDate(date, year, easter) {
+  const pairs = [
+    [new Date(year, 11, 8), getImmaculateConceptionDate(year)],
+    [new Date(year, 2, 19), getStJosephDate(year, easter)],
+    [new Date(year, 2, 25), getAnnunciationDate(year, easter)],
+  ];
+  return pairs.some(([nominal, observed]) => isSameDay(date, nominal) && !isSameDay(nominal, observed));
+}
+
+/**
  * Get the liturgical color for a specific date
  * @param {Date} date - The date to check (defaults to today)
  * @param {Object} override - Optional manual override object
  * @returns {Object} - Liturgical color object with name, hex, and tailwind colors
  */
 export async function getLiturgicalColor(date = new Date(), override = null) {
+  // Normalize to local midnight before any computation. The live "today" endpoint passes a
+  // Date carrying the current time-of-day, and the special-day checks below (Palm Sunday,
+  // Good Friday, Pentecost, Gaudete, Laetare) rely on exact-timestamp equality — without this
+  // they never match on the actual day.
+  date = new Date(date);
+  date.setHours(0, 0, 0, 0);
+
   // Check for manual override first
   if (override) {
     const overrideColor = LITURGICAL_COLORS[override.color.toUpperCase()];
@@ -362,6 +480,13 @@ export async function getLiturgicalColor(date = new Date(), override = null) {
   const month = date.getMonth();
   const day = date.getDate();
   
+  // Easter Triduum: Holy Thursday and Holy Saturday (Easter Vigil) are white. These days fall
+  // between the end of Lent (before Holy Thursday) and Easter, so without this they match no
+  // season and default to green.
+  if (isHolyThursday(date, easter) || isHolySaturday(date, easter)) {
+    return LITURGICAL_COLORS.WHITE;
+  }
+
   // Check for special days first
   if (isPalmSunday(date, easter) || isGoodFriday(date, easter) || isPentecost(date, easter)) {
     return LITURGICAL_COLORS.RED;
@@ -374,12 +499,34 @@ export async function getLiturgicalColor(date = new Date(), override = null) {
   if (isLaetareSunday(date, easter)) {
     return LITURGICAL_COLORS.ROSE;
   }
-  
+
+  // The Sundays of Advent, Lent, and Easter outrank any solemnity or feast: keep the season
+  // colour and let the impeded celebration be transferred (handled below and via the observed
+  // dates of the transferable solemnities).
+  if (isPrivilegedSunday(date, easter)) {
+    return isEasterSeason(date, easter) ? LITURGICAL_COLORS.WHITE : LITURGICAL_COLORS.PURPLE;
+  }
+
+  // Transferable solemnities (Immaculate Conception, Saint Joseph, the Annunciation) are
+  // celebrated in white on their observed date, which may differ from the nominal calendar date
+  // when the nominal date is impeded by a Sunday, Holy Week, or the Octave of Easter.
+  if (
+    isSameDay(date, getImmaculateConceptionDate(year)) ||
+    isSameDay(date, getStJosephDate(year, easter)) ||
+    isSameDay(date, getAnnunciationDate(year, easter))
+  ) {
+    return LITURGICAL_COLORS.WHITE;
+  }
+
+  // If this is the nominal date of one of those solemnities but it was transferred away, do not
+  // let the saint-calendar feast rules below whiten it — fall through to the season colour.
+  const solemnityTransferredAway = isTransferredSolemnityNominalDate(date, year, easter);
+
   // Check for major feasts that override season colors
   // These solemnities and feasts take precedence over the season
-  
+
   // First, check if there's a feast on this date that should override
-  if (getSaintsForDate) {
+  if (!solemnityTransferredAway && getSaintsForDate) {
     try {
       const saints = getSaintsForDate(date);
       if (saints && saints.length > 0) {
@@ -449,27 +596,16 @@ export async function getLiturgicalColor(date = new Date(), override = null) {
     }
   }
   
-  // Hardcoded checks for specific feasts (fallback if saint calendar not available)
-  // Immaculate Conception (December 8) - Solemnity, white even during Advent
-  if (month === 11 && day === 8) {
-    return LITURGICAL_COLORS.WHITE;
-  }
-  
+  // Hardcoded checks for specific feasts (fallback if saint calendar not available).
+  // Note: the Immaculate Conception (Dec 8), Saint Joseph (Mar 19) and the Annunciation (Mar 25)
+  // are handled above via their observed dates (getImmaculateConceptionDate / getStJosephDate /
+  // getAnnunciationDate) so that transference is respected.
+
   // Our Lady of Guadalupe (December 12) - Feast, white even during Advent
   if (month === 11 && day === 12) {
     return LITURGICAL_COLORS.WHITE;
   }
-  
-  // Saint Joseph (March 19) - Solemnity, white even during Lent
-  if (month === 2 && day === 19) {
-    return LITURGICAL_COLORS.WHITE;
-  }
-  
-  // Annunciation (March 25) - Solemnity, white even during Lent
-  if (month === 2 && day === 25) {
-    return LITURGICAL_COLORS.WHITE;
-  }
-  
+
   // The Presentation of the Lord (February 2) - Feast, white even during Ordinary Time
   if (month === 1 && day === 2) {
     return LITURGICAL_COLORS.WHITE;
@@ -611,11 +747,34 @@ export async function getLiturgicalColor(date = new Date(), override = null) {
     return LITURGICAL_COLORS.WHITE;
   }
   
-  // Christmas octave feasts (December 26-28) - white (already in Christmas season, but explicit)
-  if (month === 11 && (day === 26 || day === 27 || day === 28)) {
-    return LITURGICAL_COLORS.WHITE;
+  // All Souls' Day (November 2) — the Commemoration of All the Faithful Departed is violet.
+  if (month === 10 && day === 2) {
+    return LITURGICAL_COLORS.PURPLE;
   }
-  
+
+  // Martyrs are celebrated in red. This covers obligatory memorials and feasts of martyrs
+  // (e.g. St Stephen and the Holy Innocents in the Christmas octave), but NOT during the
+  // penitential seasons of Lent and Advent, which retain their violet, and NOT optional
+  // memorials (the weekday/season colour prevails unless the memorial is actually observed).
+  // A mere memorial does not displace a Sunday, but a feast (octave days) does.
+  if (getSaintsForDate && !isLent(date, easter) && !isAdvent(date)) {
+    try {
+      const saints = getSaintsForDate(date);
+      const feast = saints && saints[0];
+      const isSunday = date.getDay() === 0;
+      if (
+        feast &&
+        feast.type !== 'optional' &&
+        feast.description && feast.description.includes('Martyr') &&
+        (!isSunday || feast.type === 'feast')
+      ) {
+        return LITURGICAL_COLORS.RED;
+      }
+    } catch (error) {
+      console.error('Error checking martyrs for date:', error);
+    }
+  }
+
   // Check seasons
   if (isEasterSeason(date, easter)) {
     return LITURGICAL_COLORS.WHITE;

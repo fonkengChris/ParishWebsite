@@ -1,7 +1,11 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { chatAPI } from '../services/api';
-import type { ChatMessage } from '../types';
+import type { ChatMessage, ChatSource } from '../types';
+
+interface ChatUiMessage extends ChatMessage {
+  sources?: ChatSource[];
+}
 
 const QUICK_PROMPTS = [
   'When is Mass on Sunday?',
@@ -13,8 +17,12 @@ const QUICK_PROMPTS = [
 const WELCOME_MESSAGE =
   'Hello! I can help with Mass times, upcoming events, prayers, sermons, and parish announcements. What would you like to know?';
 
-function createMessage(role: ChatMessage['role'], content: string): ChatMessage {
-  return { role, content };
+function createMessage(
+  role: ChatMessage['role'],
+  content: string,
+  sources?: ChatSource[]
+): ChatUiMessage {
+  return { role, content, sources };
 }
 
 function renderMessageContent(content: string, isUser: boolean) {
@@ -52,7 +60,7 @@ function renderMessageContent(content: string, isUser: boolean) {
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([
+  const [messages, setMessages] = useState<ChatUiMessage[]>([
     createMessage('assistant', WELCOME_MESSAGE),
   ]);
   const [input, setInput] = useState('');
@@ -82,7 +90,11 @@ export default function Chatbot() {
     const priorMessages = messages.filter(
       (_, index) => !(index === 0 && messages[0]?.role === 'assistant')
     );
-    const history = [...priorMessages, nextUserMessage];
+    // Send only role/content to the API (drop UI-only fields like sources).
+    const history = [...priorMessages, nextUserMessage].map(({ role, content }) => ({
+      role,
+      content,
+    }));
 
     setMessages((current) => [...current, nextUserMessage]);
     setLoading(true);
@@ -100,7 +112,7 @@ export default function Chatbot() {
 
       setMessages((current) => [
         ...current,
-        createMessage('assistant', response.reply),
+        createMessage('assistant', response.reply, response.sources),
       ]);
     } catch (err) {
       console.error('Chat error:', err);
@@ -139,22 +151,44 @@ export default function Chatbot() {
           </div>
 
           <div className="h-80 overflow-y-auto px-4 py-4 space-y-3 bg-gradient-to-b from-gray-50 to-white">
-            {messages.map((message, index) => (
-              <div
-                key={`${message.role}-${index}`}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
+            {messages.map((message, index) => {
+              const linkableSources = (message.sources ?? []).filter((source) => source.url);
+
+              return (
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap ${
-                    message.role === 'user'
-                      ? 'bg-primary-600 text-white rounded-br-md'
-                      : 'bg-white text-gray-800 border border-gray-200 shadow-sm rounded-bl-md'
-                  }`}
+                  key={`${message.role}-${index}`}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
-                  {renderMessageContent(message.content, message.role === 'user')}
+                  <div className="max-w-[85%] flex flex-col gap-2">
+                    <div
+                      className={`rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap ${
+                        message.role === 'user'
+                          ? 'bg-primary-600 text-white rounded-br-md'
+                          : 'bg-white text-gray-800 border border-gray-200 shadow-sm rounded-bl-md'
+                      }`}
+                    >
+                      {renderMessageContent(message.content, message.role === 'user')}
+                    </div>
+
+                    {message.role === 'assistant' && linkableSources.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {linkableSources.map((source, sourceIndex) => (
+                          <a
+                            key={`${source.type}-${source.id ?? sourceIndex}`}
+                            href={source.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs rounded-full border border-primary-200 bg-primary-50 text-primary-700 px-2.5 py-1 hover:bg-primary-100 transition-colors"
+                          >
+                            {source.label || source.type}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             {loading && (
               <div className="flex justify-start">

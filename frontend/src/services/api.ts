@@ -223,7 +223,7 @@ api.interceptors.response.use(
     // Handle non-JSON responses (e.g., HTML error pages)
     if (error.response) {
       const contentType = error.response.headers['content-type'] || '';
-      let responseData = error.response.data;
+      const responseData = error.response.data;
       
       // If data is a string and looks like HTML
       if (typeof responseData === 'string') {

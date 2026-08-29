@@ -1,23 +1,38 @@
-import axios from 'axios';
+import { createOpenAI } from '@ai-sdk/openai';
 import { DAYS_OF_WEEK } from './massScheduleTool.js';
 import { PRAYER_CATEGORIES } from './prayersTool.js';
 
-const DEFAULT_BASE_URL = 'http://127.0.0.1:11434';
-const DEFAULT_MODEL = 'qwen2.5:3b';
+const DEFAULT_MODEL = 'gpt-4.1-nano';
 
-export function getOllamaConfig() {
+export function getAiConfig() {
   return {
-    baseUrl: (process.env.OLLAMA_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, ''),
-    model: process.env.OLLAMA_MODEL || DEFAULT_MODEL,
-    enabled: process.env.OLLAMA_ENABLED !== 'false',
-    timeoutMs: Number(process.env.OLLAMA_TIMEOUT_MS || 60000),
+    apiKey: process.env.OPENAI_API_KEY || '',
+    model: process.env.CHAT_MODEL || DEFAULT_MODEL,
+    enabled: process.env.CHAT_ENABLED !== 'false',
   };
 }
 
-export const MASS_SCHEDULE_TOOL = {
-  type: 'function',
-  function: {
-    name: 'getMassSchedule',
+/**
+ * The chatbot only uses the LLM when an API key is configured. Otherwise the
+ * service falls back to the rule-based router, so the widget keeps working.
+ */
+export function isAiAvailable() {
+  const { apiKey, enabled } = getAiConfig();
+  return enabled && Boolean(apiKey);
+}
+
+export function getChatModel() {
+  const { apiKey, model } = getAiConfig();
+  const openai = createOpenAI({ apiKey });
+  return openai(model);
+}
+
+/**
+ * JSON-schema parameter definitions for the five parish tools, keyed by tool
+ * name. Reused verbatim by chatService via the AI SDK's jsonSchema() helper.
+ */
+export const TOOL_SCHEMAS = {
+  getMassSchedule: {
     description:
       'Get weekly Mass, Confession, Adoration, or other service times. Mass times repeat every week on the given dayOfWeek.',
     parameters: {
@@ -40,13 +55,9 @@ export const MASS_SCHEDULE_TOOL = {
       },
     },
   },
-};
-
-export const UPCOMING_EVENTS_TOOL = {
-  type: 'function',
-  function: {
-    name: 'getUpcomingEvents',
-    description: 'Get upcoming parish events and activities with dates, locations, and descriptions.',
+  getUpcomingEvents: {
+    description:
+      'Get upcoming parish events and activities with dates, locations, and descriptions.',
     parameters: {
       type: 'object',
       properties: {
@@ -61,12 +72,7 @@ export const UPCOMING_EVENTS_TOOL = {
       },
     },
   },
-};
-
-export const PRAYERS_TOOL = {
-  type: 'function',
-  function: {
-    name: 'getPrayers',
+  getPrayers: {
     description: 'Get prayers by category or search by title/content keywords.',
     parameters: {
       type: 'object',
@@ -87,12 +93,7 @@ export const PRAYERS_TOOL = {
       },
     },
   },
-};
-
-export const SERMONS_TOOL = {
-  type: 'function',
-  function: {
-    name: 'getSermons',
+  getSermons: {
     description: 'Get recent sermons, homilies, or catechism sessions.',
     parameters: {
       type: 'object',
@@ -113,12 +114,7 @@ export const SERMONS_TOOL = {
       },
     },
   },
-};
-
-export const ANNOUNCEMENTS_TOOL = {
-  type: 'function',
-  function: {
-    name: 'getAnnouncements',
+  getAnnouncements: {
     description: 'Get recent parish announcements and news.',
     parameters: {
       type: 'object',
@@ -131,28 +127,6 @@ export const ANNOUNCEMENTS_TOOL = {
     },
   },
 };
-
-export const CHAT_TOOLS = [
-  MASS_SCHEDULE_TOOL,
-  UPCOMING_EVENTS_TOOL,
-  PRAYERS_TOOL,
-  SERMONS_TOOL,
-  ANNOUNCEMENTS_TOOL,
-];
-
-export async function isOllamaAvailable() {
-  const { baseUrl, enabled } = getOllamaConfig();
-  if (!enabled) {
-    return false;
-  }
-
-  try {
-    const response = await axios.get(`${baseUrl}/api/tags`, { timeout: 2000 });
-    return response.status === 200;
-  } catch {
-    return false;
-  }
-}
 
 export function buildSystemPrompt() {
   const parishName = process.env.PARISH_NAME || 'our parish';
@@ -169,24 +143,8 @@ export function buildSystemPrompt() {
     '- getAnnouncements: parish news and notices.',
     'Mass schedules are weekly recurring (day of week + time), not calendar dates.',
     'If the user says "today" or "tomorrow", convert that to the correct dayOfWeek before calling getMassSchedule.',
+    'If the user asks about several topics at once, call every relevant tool.',
     'Answer only using tool results. If nothing is found, say so politely and suggest the relevant page on the website.',
     'Keep replies brief, friendly, and easy to read.',
   ].join(' ');
-}
-
-export async function chatWithTools({ messages, tools = CHAT_TOOLS }) {
-  const { baseUrl, model, timeoutMs } = getOllamaConfig();
-
-  const response = await axios.post(
-    `${baseUrl}/api/chat`,
-    {
-      model,
-      messages,
-      tools,
-      stream: false,
-    },
-    { timeout: timeoutMs }
-  );
-
-  return response.data?.message;
 }

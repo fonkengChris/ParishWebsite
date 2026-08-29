@@ -18,6 +18,7 @@ router.post(
         reply: result.reply,
         sources: result.sources,
         conversationId: result.conversationId,
+        mode: result.mode,
       });
     } catch (error) {
       console.error('Chat error:', error);
