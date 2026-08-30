@@ -22,6 +22,7 @@ const quickLinks: QuickLink[] = [
   { to: '/admin/mission-stations', icon: '📍', label: 'Mission Stations', description: 'Manage mission stations', color: 'from-orange-500 to-orange-600' },
   { to: '/admin/liturgical-colors', icon: '🎨', label: 'Liturgical Colors', description: 'Configure liturgical colors', color: 'from-rose-500 to-rose-600' },
   { to: '/admin/donations', icon: '💰', label: 'Donations', description: 'View and manage donations', color: 'from-emerald-500 to-emerald-600' },
+  { to: '/admin/send-message', icon: '✉️', label: 'Send Message', description: 'Email or WhatsApp parishioners', color: 'from-cyan-500 to-cyan-600' },
 ];
 
 const adminOnlyLinks: QuickLink[] = [

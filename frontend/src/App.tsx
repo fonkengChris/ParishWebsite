@@ -41,6 +41,7 @@ import ManageMissionStations from './pages/admin/ManageMissionStations';
 import ManageLiturgicalColors from './pages/admin/ManageLiturgicalColors';
 import ManageUsers from './pages/admin/ManageUsers';
 import ManageDonations from './pages/admin/ManageDonations';
+import SendMessage from './pages/admin/SendMessage';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -176,6 +177,14 @@ function App() {
           element={
             <ProtectedRoute>
               <ManageDonations />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/send-message"
+          element={
+            <ProtectedRoute>
+              <SendMessage />
             </ProtectedRoute>
           }
         />

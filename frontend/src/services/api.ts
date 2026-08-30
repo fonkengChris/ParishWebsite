@@ -740,6 +740,77 @@ export const usersAPI = {
   },
 };
 
+// Notifications API (Admin only)
+export type NotificationChannel = 'email' | 'sms' | 'both';
+
+export interface NotificationRecipient {
+  email?: string;
+  phone?: string;
+  name?: string;
+}
+
+export interface NotificationRecord {
+  _id: string;
+  type: NotificationChannel;
+  recipient: NotificationRecipient;
+  subject: string;
+  message: string;
+  status: 'pending' | 'sent' | 'failed' | 'partially_sent';
+  emailStatus?: 'pending' | 'sent' | 'failed';
+  smsStatus?: 'pending' | 'sent' | 'failed';
+  error?: string;
+  createdAt: string;
+}
+
+export interface NotificationHistoryResponse {
+  notifications: NotificationRecord[];
+  total: number;
+  limit: number;
+  skip: number;
+  hasMore: boolean;
+}
+
+export interface NotificationServiceStatus {
+  email: boolean;
+  sms: boolean;
+  available: {
+    email: boolean;
+    sms: boolean;
+  };
+}
+
+export interface SendBulkResult {
+  total: number;
+  successful: number;
+  failed: number;
+  notifications: Array<
+    | NotificationRecord
+    | { success: false; recipient: NotificationRecipient; error: string }
+  >;
+}
+
+export const notificationsAPI = {
+  getStatus: async (): Promise<NotificationServiceStatus> => {
+    const { data } = await api.get<NotificationServiceStatus>('/notifications/status');
+    return data;
+  },
+  getHistory: async (params?: { limit?: number; skip?: number; status?: string; type?: string }): Promise<NotificationHistoryResponse> => {
+    const { data } = await api.get<NotificationHistoryResponse>('/notifications/history', { params });
+    return data;
+  },
+  sendBulk: async (payload: {
+    recipients: NotificationRecipient[];
+    type: NotificationChannel;
+    subject?: string;
+    message: string;
+    htmlMessage?: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<SendBulkResult> => {
+    const { data } = await api.post<SendBulkResult>('/notifications/send-bulk', payload);
+    return data;
+  },
+};
+
 // Saints API
 export const saintsAPI = {
   getToday: async (): Promise<SaintDay> => {
