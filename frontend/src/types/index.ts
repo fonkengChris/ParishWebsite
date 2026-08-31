@@ -208,3 +208,77 @@ export interface ChatResponse {
   sources?: ChatSource[];
   conversationId?: string;
 }
+
+// Parish identity/branding — the singleton fetched from /api/parish-config.
+export interface ParishConfig {
+  name: string;
+  diocese: string;
+  dioceseUrl: string;
+  city: string;
+  region: string;
+  country: string;
+  coordinates: { lat: number; lng: number };
+  neighbourhood: string;
+  contact: {
+    phone: string;
+    email: string;
+    address: string;
+    officeHours: string[];
+  };
+  social: {
+    facebook?: string;
+    youtube?: string;
+    instagram?: string;
+    whatsapp?: string;
+    twitter?: string;
+  };
+  tagline: string;
+  patron: { name: string; descriptor: string };
+  assets: { logoUrl: string; faviconUrl: string; heroUrl: string };
+  currency: string;
+}
+
+// Editorial copy for the static pages — the singleton from /api/site-content.
+export interface SiteContentCard {
+  eyebrow: string;
+  title: string;
+  body: string;
+  linkUrl: string;
+  linkLabel: string;
+}
+
+export interface SiteContentIntro {
+  heading: string;
+  subhead: string;
+}
+
+export interface SiteContent {
+  home: {
+    heroHeadingLead: string;
+    heroHeadingEmph: string;
+    heroSubhead: string;
+    sanctuaryEyebrow: string;
+    sanctuaryHeadingLead: string;
+    sanctuaryHeadingEmph: string;
+    sanctuaryBody: string;
+    formationHeading: string;
+    formationSubhead: string;
+    scriptureCard: SiteContentCard;
+    doctrineCard: SiteContentCard;
+    closingQuote: string;
+    closingAttribution: string;
+  };
+  about: {
+    subHero: string;
+    historyParagraphs: string[];
+    missionIntro: string;
+    missionPoints: string[];
+    pastoralTeam: Array<{ role: string; description: string }>;
+    getInTouch: string;
+  };
+  pageIntros: {
+    contact: SiteContentIntro;
+    donations: SiteContentIntro;
+    privacy: { heading: string; subhead: string; effectiveDate: string };
+  };
+}

@@ -27,6 +27,8 @@ const quickLinks: QuickLink[] = [
 
 const adminOnlyLinks: QuickLink[] = [
   { to: '/admin/users', icon: '👤', label: 'Users', description: 'Manage user roles and permissions', color: 'from-purple-500 to-purple-600' },
+  { to: '/admin/parish-settings', icon: '🏛️', label: 'Parish Settings', description: 'Identity, contacts, branding & assets', color: 'from-slate-500 to-slate-600' },
+  { to: '/admin/site-content', icon: '📝', label: 'Site Content', description: 'Edit Home & About page copy', color: 'from-amber-500 to-amber-600' },
 ];
 
 export default function AdminDashboard() {

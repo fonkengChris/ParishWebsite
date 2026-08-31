@@ -8,9 +8,11 @@ import {
   liturgicalColorAPI,
   type LiturgicalColorResponse,
 } from "../services/api";
-import { PARISH_NAME, PARISH_DIOCESE } from "../components/Map";
 import { POPE, getBishopsForDiocese } from "../data/churchLeadership";
 import { useTheme } from "../contexts/ThemeContext";
+import { useParish } from "../contexts/ParishContext";
+import { useSiteContent } from "../contexts/SiteContentContext";
+import { fillParishTokens } from "../data/defaultSiteContent";
 import type { Announcement, Event, SaintDay } from "../types";
 
 // Turn a liturgical colour into the phrase the Church would use for the season.
@@ -49,6 +51,10 @@ function saintTypeLabel(type: string): string {
 
 export default function Home() {
   const { liturgicalColor } = useTheme();
+  const { parish } = useParish();
+  const { content } = useSiteContent();
+  const home = content.home;
+  const t = (s: string) => fillParishTokens(s, parish);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [saintOfTheDay, setSaintOfTheDay] = useState<SaintDay | null>(null);
@@ -118,7 +124,7 @@ export default function Home() {
   });
   const season = seasonPhrase(liturgicalColor?.color);
   const todaySaint = saintOfTheDay?.saints?.[0];
-  const bishops = getBishopsForDiocese(PARISH_DIOCESE);
+  const bishops = getBishopsForDiocese(parish.diocese);
   const leaders = [POPE, ...bishops];
 
   return (
@@ -135,13 +141,11 @@ export default function Home() {
               </span>
             </div>
             <h1 className="font-serif font-medium text-ink leading-[1.02] tracking-tight text-[2.75rem] sm:text-6xl lg:text-[4.5rem]">
-              Welcome home to{" "}
-              <em className="italic text-primary-700">Holy Ground</em>.
+              {t(home.heroHeadingLead)}{" "}
+              <em className="italic text-primary-700">{t(home.heroHeadingEmph)}</em>.
             </h1>
             <p className="mt-6 text-lg text-ink-soft max-w-[48ch]">
-              {PARISH_NAME} is a family of faith in Limbe — gathering to worship, to serve the
-              sick, and to walk together through the whole of the Church's year. There's a place
-              for you here.
+              {t(home.heroSubhead)}
             </p>
             <div className="mt-8 flex flex-wrap gap-3.5">
               <Link
@@ -163,8 +167,8 @@ export default function Home() {
           <div className="relative">
             <div className="arch-frame aspect-[4/5] max-w-[420px] mx-auto lg:mr-0">
               <img
-                src="/images/church.jpeg"
-                alt={`${PARISH_NAME} church`}
+                src={parish.assets.heroUrl || "/images/church.jpeg"}
+                alt={`${parish.name} church`}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -261,15 +265,14 @@ export default function Home() {
         <div className="s-arch" aria-hidden="true"></div>
         <div className="s-inner max-w-3xl mx-auto text-center px-4 sm:px-6 py-24 sm:py-28">
           <p className="s-eyebrow text-xs tracking-[0.28em] uppercase font-bold text-primary-100 mb-5">
-            Come and Pray
+            {t(home.sanctuaryEyebrow)}
           </p>
           <h2 className="font-display font-semibold text-white leading-[1.08] text-4xl sm:text-5xl">
-            The doors are open.{" "}
-            <em className="italic text-primary-200">Come and stand a while.</em>
+            {t(home.sanctuaryHeadingLead)}{" "}
+            <em className="italic text-primary-200">{t(home.sanctuaryHeadingEmph)}</em>
           </h2>
           <p className="mt-5 text-stone-ivory text-lg max-w-[46ch] mx-auto">
-            Beyond the news and the schedule there is the quiet of the sanctuary — Adoration,
-            Confession, and the daily Mass, kept faithfully in step with the Church's year.
+            {t(home.sanctuaryBody)}
           </p>
           <Link
             to="/mass-schedule"
@@ -299,53 +302,51 @@ export default function Home() {
         <div className="text-center max-w-2xl mx-auto mb-10">
           <p className="text-xs tracking-[0.2em] uppercase font-bold text-primary-700">Formation</p>
           <h2 className="font-serif font-medium text-ink text-4xl md:text-5xl mt-2">
-            Grow in your faith
+            {t(home.formationHeading)}
           </h2>
           <p className="text-ink-soft mt-3">
-            Nourish your soul each day through Scripture and the teaching of the Church.
+            {t(home.formationSubhead)}
           </p>
         </div>
         <div className="grid md:grid-cols-2 gap-6">
           <div className="relative bg-white border border-line rounded-3xl p-9 overflow-hidden">
             <span className="absolute top-0 left-8 h-1.5 rounded-b-md bg-primary-600" style={{ width: "3.25rem" }} aria-hidden="true"></span>
             <p className="text-xs tracking-[0.2em] uppercase font-bold text-primary-700 mt-3">
-              Scripture
+              {home.scriptureCard.eyebrow}
             </p>
             <h3 className="font-serif font-semibold text-2xl text-ink mt-2 mb-3">
-              Immerse yourself in the Holy Bible
+              {home.scriptureCard.title}
             </h3>
             <p className="text-ink-soft mb-5 leading-relaxed">
-              Make a habit of reading the Scriptures daily. God speaks to us through His Word —
-              strengthening, guiding, and consoling us in every circumstance.
+              {home.scriptureCard.body}
             </p>
             <a
-              href="https://catenabible.com"
+              href={home.scriptureCard.linkUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="font-bold text-sm text-primary-700 hover:text-primary-900 inline-flex items-center gap-2"
             >
-              Read the Bible online <span aria-hidden="true">↗</span>
+              {home.scriptureCard.linkLabel} <span aria-hidden="true">↗</span>
             </a>
           </div>
           <div className="relative bg-white border border-line rounded-3xl p-9 overflow-hidden">
             <span className="absolute top-0 left-8 h-1.5 rounded-b-md bg-primary-600" style={{ width: "3.25rem" }} aria-hidden="true"></span>
             <p className="text-xs tracking-[0.2em] uppercase font-bold text-primary-700 mt-3">
-              Doctrine
+              {home.doctrineCard.eyebrow}
             </p>
             <h3 className="font-serif font-semibold text-2xl text-ink mt-2 mb-3">
-              Deepen your faith with the Catechism
+              {home.doctrineCard.title}
             </h3>
             <p className="text-ink-soft mb-5 leading-relaxed">
-              The Catechism of the Catholic Church presents the faith clearly and completely.
-              Regular reading helps you understand what the Church believes and teaches.
+              {home.doctrineCard.body}
             </p>
             <a
-              href="https://www.vatican.va/archive/ENG0015/_INDEX.HTM"
+              href={home.doctrineCard.linkUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="font-bold text-sm text-primary-700 hover:text-primary-900 inline-flex items-center gap-2"
             >
-              Read the Catechism online <span aria-hidden="true">↗</span>
+              {home.doctrineCard.linkLabel} <span aria-hidden="true">↗</span>
             </a>
           </div>
         </div>
@@ -539,10 +540,10 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <div className="lit-soft-panel rounded-3xl px-6 py-14 sm:py-16 text-center">
           <p className="font-serif italic font-medium text-ink text-2xl sm:text-3xl md:text-4xl leading-snug max-w-[24ch] mx-auto">
-            “Labour without stopping; do all the good you can while you still have the time.”
+            “{t(home.closingQuote)}”
           </p>
           <p className="mt-5 text-xs tracking-[0.2em] uppercase font-bold text-primary-800">
-            St. John of God · Patron of the Sick
+            {t(home.closingAttribution)}
           </p>
         </div>
       </section>

@@ -1,10 +1,26 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import Map, { PARISH_LOCATION, PARISH_NAME, PARISH_DIOCESE } from '../components/Map';
+import Map from '../components/Map';
 import { contactAPI, parishionersAPI, authAPI } from '../services/api';
 import { getStoredUser, isAuthenticated } from '../utils/auth';
+import { useParish } from '../contexts/ParishContext';
+import { useSiteContent } from '../contexts/SiteContentContext';
+
+// Small inline SVG icon (replaces the previous emoji iconography per design system).
+function ContactIcon({ path }: { path: string }) {
+  return (
+    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-50 text-primary-700 flex-shrink-0">
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+        <path strokeLinecap="round" strokeLinejoin="round" d={path} />
+      </svg>
+    </span>
+  );
+}
 
 export default function Contact() {
+  const { parish } = useParish();
+  const { content } = useSiteContent();
+  const intro = content.pageIntros.contact;
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -130,61 +146,76 @@ export default function Contact() {
 
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="mb-12 text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 text-gray-900">Contact Us</h1>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">We'd love to hear from you</p>
+          <h1 className="font-serif font-medium text-ink text-5xl md:text-6xl mb-4">{intro.heading}</h1>
+          <p className="text-ink-soft text-lg max-w-2xl mx-auto">{intro.subhead}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Contact Information */}
           <div>
-            <h2 className="text-3xl font-bold mb-2 text-gray-900">{PARISH_NAME}</h2>
-            <p className="text-xl font-semibold mb-8 text-primary-700">{PARISH_DIOCESE}</p>
-            <div className="space-y-6 text-gray-700 mb-8">
-              <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                <h3 className="font-bold mb-3 text-primary-700 flex items-center gap-2 text-lg">
-                  <span className="text-2xl">📍</span> Address
+            <p className="text-xs tracking-[0.2em] uppercase font-bold text-primary-700 mb-2">
+              {parish.diocese}
+            </p>
+            <h2 className="font-serif font-medium text-ink text-3xl mb-8">{parish.name}</h2>
+            <div className="space-y-5 mb-8">
+              <div className="bg-white p-6 rounded-2xl border border-line hover:border-primary-600 transition-all duration-200">
+                <h3 className="font-serif font-semibold text-ink flex items-center gap-2.5 text-lg mb-3">
+                  <ContactIcon path="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  Address
                 </h3>
-                <p className="text-gray-600 leading-relaxed">{PARISH_NAME}, Bonadikombo, Limbe</p>
-                <p className="text-gray-600 leading-relaxed">{PARISH_LOCATION.region}, {PARISH_LOCATION.country}</p>
+                {parish.contact.address && (
+                  <p className="text-ink-soft leading-relaxed">{parish.contact.address}</p>
+                )}
+                <p className="text-ink-soft leading-relaxed">
+                  {[parish.city, parish.region, parish.country].filter(Boolean).join(', ')}
+                </p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                <h3 className="font-bold mb-3 text-primary-700 flex items-center gap-2 text-lg">
-                  <span className="text-2xl">📞</span> Phone
+              <div className="bg-white p-6 rounded-2xl border border-line hover:border-primary-600 transition-all duration-200">
+                <h3 className="font-serif font-semibold text-ink flex items-center gap-2.5 text-lg mb-3">
+                  <ContactIcon path="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  Phone
                 </h3>
-                <p className="text-gray-600 font-medium">+237 333 22 11 00</p>
-                <p className="text-sm text-gray-500 mt-1">Cameroon (+237)</p>
+                <p className="text-ink font-medium">{parish.contact.phone}</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                <h3 className="font-bold mb-3 text-primary-700 flex items-center gap-2 text-lg">
-                  <span className="text-2xl">✉️</span> Email
+              <div className="bg-white p-6 rounded-2xl border border-line hover:border-primary-600 transition-all duration-200">
+                <h3 className="font-serif font-semibold text-ink flex items-center gap-2.5 text-lg mb-3">
+                  <ContactIcon path="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  Email
                 </h3>
-                <p className="text-gray-600 font-medium">info@parishlimbe.cm</p>
+                <a href={`mailto:${parish.contact.email}`} className="text-ink font-medium hover:text-primary-700 transition-colors">
+                  {parish.contact.email}
+                </a>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                <h3 className="font-bold mb-3 text-primary-700 flex items-center gap-2 text-lg">
-                  <span className="text-2xl">🕐</span> Office Hours
+              <div className="bg-white p-6 rounded-2xl border border-line hover:border-primary-600 transition-all duration-200">
+                <h3 className="font-serif font-semibold text-ink flex items-center gap-2.5 text-lg mb-3">
+                  <ContactIcon path="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  Office Hours
                 </h3>
-                <p className="text-gray-600 leading-relaxed">Monday - Friday: 9:00 AM - 5:00 PM</p>
-                <p className="text-gray-600 leading-relaxed">Saturday: 9:00 AM - 12:00 PM</p>
-                <p className="text-gray-600 leading-relaxed">Sunday: Closed</p>
+                {parish.contact.officeHours.map((line, i) => (
+                  <p key={i} className="text-ink-soft leading-relaxed">{line}</p>
+                ))}
               </div>
             </div>
 
             {/* Map */}
-            <div className="mt-8 rounded-xl overflow-hidden shadow-lg">
+            <div className="mt-8 rounded-2xl overflow-hidden border border-line">
               <Map height="256px" />
             </div>
           </div>
 
           {/* Contact Form */}
           <div>
-            <h2 className="text-3xl font-bold mb-8 text-gray-900">Send us a Message</h2>
+            <h2 className="font-serif font-medium text-ink text-3xl mb-8">Send us a Message</h2>
             {submitted ? (
-              <div className="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-200 rounded-2xl p-10 text-center shadow-xl">
-                <div className="text-6xl mb-4">✅</div>
-                <p className="text-green-800 font-semibold text-lg">
+              <div className="bg-white border border-line rounded-2xl p-10 text-center">
+                <span className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary-50 text-primary-700 mb-4">
+                  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </span>
+                <p className="text-ink font-semibold text-lg">
                   Thank you! Your message has been sent. We'll get back to you soon.
                 </p>
               </div>

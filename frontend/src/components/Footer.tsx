@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
-import { PARISH_NAME, PARISH_DIOCESE } from './Map';
+import { useParish } from '../contexts/ParishContext';
 
 export default function Footer() {
+  const { parish } = useParish();
   const currentYear = new Date().getFullYear();
 
   const columns: { heading: string; links: { to: string; label: string }[] }[] = [
@@ -49,20 +50,20 @@ export default function Footer() {
                 ✝
               </span>
               <div>
-                <h3 className="font-serif text-2xl text-white leading-none">{PARISH_NAME}</h3>
+                <h3 className="font-serif text-2xl text-white leading-none">{parish.name}</h3>
                 <a
-                  href="https://bueadiocese.org"
+                  href={parish.dioceseUrl || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[0.62rem] tracking-[0.2em] uppercase font-bold text-gold hover:text-white transition-colors mt-1 inline-block no-underline"
                 >
-                  {PARISH_DIOCESE} · Limbe
+                  {parish.diocese} · {parish.city}
                 </a>
               </div>
             </div>
             <p className="text-sm leading-relaxed text-stone-soft">
               Serving our community with faith, hope, and love. Join us in worship and fellowship
-              on Holy Ground.
+              on {parish.tagline}.
             </p>
           </div>
 
@@ -93,10 +94,10 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-stone-soft">
-            &copy; {currentYear} {PARISH_NAME}. All rights reserved.
+            &copy; {currentYear} {parish.name}. All rights reserved.
           </p>
           <div className="flex items-center gap-6 text-sm">
-            <span className="text-stone-soft">Buea Diocese · Cameroon</span>
+            <span className="text-stone-soft">{parish.diocese} · {parish.country}</span>
             <Link to="/privacy-policy" className="text-stone-ivory/80 hover:text-white transition-colors duration-200">
               Privacy Policy
             </Link>

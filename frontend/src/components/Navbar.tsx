@@ -1,10 +1,11 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getStoredUser, isAuthenticated, clearStoredAuth } from '../utils/auth';
-import { PARISH_NAME } from './Map';
+import { useParish } from '../contexts/ParishContext';
 import type { User } from '../types';
 
 export default function Navbar() {
+  const { parish } = useParish();
   const location = useLocation();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
@@ -95,10 +96,10 @@ export default function Navbar() {
             </span>
             <span className="min-w-0">
               <span className="block font-serif text-lg md:text-xl font-semibold text-ink leading-none truncate">
-                {PARISH_NAME}
+                {parish.name}
               </span>
               <span className="block text-[0.58rem] tracking-[0.22em] uppercase font-bold text-ink-soft mt-1">
-                Buea Diocese · Limbe
+                {parish.diocese} · {parish.city}
               </span>
             </span>
           </Link>

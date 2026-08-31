@@ -1,14 +1,22 @@
 import Layout from '../components/Layout';
-import { PARISH_NAME, PARISH_DIOCESE } from '../components/Map';
+import { useParish } from '../contexts/ParishContext';
+import { useSiteContent } from '../contexts/SiteContentContext';
 
 export default function PrivacyPolicy() {
+  const { parish } = useParish();
+  const { content } = useSiteContent();
+  const intro = content.pageIntros.privacy;
+  const effectiveDate =
+    intro.effectiveDate ||
+    new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="mb-12 text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 text-gray-900">Privacy Policy</h1>
-          <p className="text-gray-600 text-lg">How we collect, use, and protect your information</p>
-          <p className="text-sm text-gray-500 mt-2">Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+          <h1 className="font-serif font-medium text-ink text-5xl md:text-6xl mb-4">{intro.heading}</h1>
+          <p className="text-ink-soft text-lg">{intro.subhead}</p>
+          <p className="text-sm text-ink-soft/70 mt-2">Last updated: {effectiveDate}</p>
         </div>
 
         <div className="prose prose-lg max-w-none">
@@ -16,7 +24,7 @@ export default function PrivacyPolicy() {
           <section className="mb-12">
             <div className="bg-white rounded-2xl shadow-xl p-8 md:p-10 border border-gray-100">
               <p className="text-gray-700 leading-relaxed text-lg mb-4">
-                At {PARISH_NAME}, we are committed to protecting your privacy and ensuring the security of your personal information. 
+                At {parish.name}, we are committed to protecting your privacy and ensuring the security of your personal information. 
                 This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website 
                 and use our services.
               </p>
@@ -148,7 +156,7 @@ export default function PrivacyPolicy() {
               <div className="space-y-4 text-gray-800">
                 <p className="leading-relaxed text-lg">
                   Our website may contain links to third-party websites or services that are not owned or controlled 
-                  by {PARISH_NAME}. We are not responsible for the privacy practices of these third-party services.
+                  by {parish.name}. We are not responsible for the privacy practices of these third-party services.
                 </p>
                 <p className="leading-relaxed text-lg">
                   We may use third-party payment processors (such as PayPal) to process donations. These services 
@@ -241,8 +249,8 @@ export default function PrivacyPolicy() {
                   If you have any questions about this Privacy Policy or our data practices, please contact us:
                 </p>
                 <div className="bg-white/10 rounded-xl p-6 mt-4">
-                  <p className="text-lg font-semibold mb-2">{PARISH_NAME}</p>
-                  <p className="mb-1">{PARISH_DIOCESE}</p>
+                  <p className="text-lg font-semibold mb-2">{parish.name}</p>
+                  <p className="mb-1">{parish.diocese}</p>
                   <p className="mt-4">
                     <a 
                       href="/contact" 

@@ -3,8 +3,11 @@ import Layout from '../components/Layout';
 import { donationsAPI } from '../services/api';
 import { getStoredUser, isAuthenticated } from '../utils/auth';
 import { parishionersAPI, authAPI } from '../services/api';
+import { useSiteContent } from '../contexts/SiteContentContext';
 
 export default function Donations() {
+  const { content } = useSiteContent();
+  const intro = content.pageIntros.donations;
   const [formData, setFormData] = useState<{
     amount: string;
     currency: string;
@@ -311,10 +314,9 @@ export default function Donations() {
     <Layout>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-12 text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 text-gray-900">Support Our Parish</h1>
+          <h1 className="text-5xl md:text-6xl font-bold mb-4 text-gray-900">{intro.heading}</h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Your generous donations help us continue our mission and serve our community. 
-            Thank you for your support!
+            {intro.subhead}
           </p>
         </div>
 

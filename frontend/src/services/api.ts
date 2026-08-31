@@ -16,6 +16,8 @@ import type {
   Donation,
   ChatRequest,
   ChatResponse,
+  ParishConfig,
+  SiteContent,
 } from '../types';
 
 // Normalize baseURL - trim spaces and ensure proper format
@@ -681,6 +683,31 @@ export const liturgicalColorOverridesAPI = {
   },
   delete: async (date: string): Promise<void> => {
     await api.delete(`/liturgical-color-overrides/${date}`);
+  },
+};
+
+// Parish Config API (identity/branding singleton)
+export const parishConfigAPI = {
+  get: async (): Promise<ParishConfig> => {
+    const { data } = await api.get<ParishConfig>('/parish-config');
+    return data;
+  },
+  update: async (config: Partial<ParishConfig>): Promise<ParishConfig> => {
+    const { data } = await api.put<ParishConfig>('/parish-config', config);
+    return data;
+  },
+};
+
+// Site Content API (editorial copy singleton). GET may return a partial/empty
+// object; callers merge it over the shipped defaults (data/defaultSiteContent).
+export const siteContentAPI = {
+  get: async (): Promise<Partial<SiteContent>> => {
+    const { data } = await api.get<Partial<SiteContent>>('/site-content');
+    return data;
+  },
+  update: async (content: Partial<SiteContent>): Promise<SiteContent> => {
+    const { data } = await api.put<SiteContent>('/site-content', content);
+    return data;
   },
 };
 

@@ -3,7 +3,7 @@
 // The Holy Father is the same for the whole Church, so he is fixed here.
 // The Bishop (or Bishops) depend on the diocese the parish belongs to —
 // keyed by diocese name so the site can be reused for a parish in another
-// diocese by matching `PARISH_DIOCESE` (see components/Map.tsx).
+// diocese by matching the diocese from ParishConfig (see contexts/ParishContext.tsx).
 //
 // Images live in `frontend/public/images/`. These are placeholders — swap the
 // photos and confirm the names/titles for the real ordinary of the diocese.

@@ -1,6 +1,7 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useParish } from '../contexts/ParishContext';
 
 // Fix for default marker icon in react-leaflet
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -24,29 +25,18 @@ interface MapProps {
   height?: string;
 }
 
-// Parish location coordinates: 4°03'19"N 9°13'41"E (Limbe, Cameroon)
-export const PARISH_COORDINATES: [number, number] = [4.055278, 9.228056];
-export const PARISH_NAME = 'St. John of God Parish';
-export const PARISH_DIOCESE = 'Buea Diocese';
-export const PARISH_LOCATION = {
-  name: PARISH_NAME,
-  diocese: PARISH_DIOCESE,
-  city: 'Limbe',
-  region: 'Southwest Region',
-  country: 'Cameroon',
-  coordinates: PARISH_COORDINATES,
-};
-
-export default function Map({ 
-  center = PARISH_COORDINATES,
+export default function Map({
+  center,
   zoom = 13,
-  height = '256px' 
+  height = '256px'
 }: MapProps) {
+  const { parish } = useParish();
+  const position: [number, number] = center ?? [parish.coordinates.lat, parish.coordinates.lng];
 
   return (
     <div style={{ height, width: '100%' }} className="rounded-lg overflow-hidden">
       <MapContainer
-        center={center}
+        center={position}
         zoom={zoom}
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
@@ -55,11 +45,11 @@ export default function Map({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <Marker position={center}>
+        <Marker position={position}>
           <Popup>
-            <strong>{PARISH_NAME}</strong><br />
-            {PARISH_DIOCESE}<br />
-            Limbe, Cameroon
+            <strong>{parish.name}</strong><br />
+            {parish.diocese}<br />
+            {parish.city}, {parish.country}
           </Popup>
         </Marker>
       </MapContainer>

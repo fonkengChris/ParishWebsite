@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { isAuthenticated } from './utils/auth';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { ParishProvider } from './contexts/ParishContext';
+import { SiteContentProvider } from './contexts/SiteContentContext';
 import Analytics from './components/Analytics';
 
 // Public Pages
@@ -42,6 +44,8 @@ import ManageLiturgicalColors from './pages/admin/ManageLiturgicalColors';
 import ManageUsers from './pages/admin/ManageUsers';
 import ManageDonations from './pages/admin/ManageDonations';
 import SendMessage from './pages/admin/SendMessage';
+import ManageParishSettings from './pages/admin/ManageParishSettings';
+import ManageSiteContent from './pages/admin/ManageSiteContent';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -51,6 +55,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 function App() {
   return (
     <ThemeProvider>
+      <ParishProvider>
+      <SiteContentProvider>
       <Analytics />
       <Router>
         <Routes>
@@ -188,8 +194,26 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/parish-settings"
+          element={
+            <ProtectedRoute>
+              <ManageParishSettings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/site-content"
+          element={
+            <ProtectedRoute>
+              <ManageSiteContent />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
       </Router>
+      </SiteContentProvider>
+      </ParishProvider>
     </ThemeProvider>
   );
 }
