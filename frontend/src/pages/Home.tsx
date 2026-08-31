@@ -8,7 +8,8 @@ import {
   liturgicalColorAPI,
   type LiturgicalColorResponse,
 } from "../services/api";
-import { PARISH_NAME } from "../components/Map";
+import { PARISH_NAME, PARISH_DIOCESE } from "../components/Map";
+import { POPE, getBishopsForDiocese } from "../data/churchLeadership";
 import { useTheme } from "../contexts/ThemeContext";
 import type { Announcement, Event, SaintDay } from "../types";
 
@@ -117,6 +118,8 @@ export default function Home() {
   });
   const season = seasonPhrase(liturgicalColor?.color);
   const todaySaint = saintOfTheDay?.saints?.[0];
+  const bishops = getBishopsForDiocese(PARISH_DIOCESE);
+  const leaders = [POPE, ...bishops];
 
   return (
     <Layout>
@@ -180,6 +183,34 @@ export default function Home() {
                 </p>
               )}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ SHEPHERDS — the Holy Father & the local Bishop ============ */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+        <div className="lit-soft-panel rounded-3xl px-6 py-8 sm:px-10">
+          <p className="text-[0.66rem] tracking-[0.2em] uppercase font-bold text-primary-700 text-center mb-6">
+            In Communion With Our Shepherds
+          </p>
+          <div className="flex flex-wrap justify-center gap-x-12 gap-y-8">
+            {leaders.map((leader) => (
+              <div key={leader.name} className="flex items-center gap-4 min-w-0">
+                <span className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden ring-2 ring-gold ring-offset-2 ring-offset-ivory-2 bg-white">
+                  <img
+                    src={leader.image}
+                    alt={leader.name}
+                    className="w-full h-full object-cover"
+                  />
+                </span>
+                <div className="min-w-0">
+                  <h3 className="font-serif font-semibold text-lg text-ink leading-snug">
+                    {leader.name}
+                  </h3>
+                  <p className="text-sm text-ink-soft mt-0.5">{leader.title}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
