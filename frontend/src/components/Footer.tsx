@@ -20,8 +20,8 @@ export default function Footer() {
       links: [
         { to: '/announcements', label: 'Announcements' },
         { to: '/events', label: 'Events' },
-        { to: '/ministries', label: 'Ministries' },
-        { to: '/gallery', label: 'Gallery' },
+        { to: '/parish-life', label: 'Apostolates' },
+        { to: '/about-us#gallery', label: 'Gallery' },
       ],
     },
     {
@@ -30,7 +30,7 @@ export default function Footer() {
         { to: '/about-us', label: 'About the Parish' },
         { to: '/contact', label: 'Contact the Office' },
         { to: '/donations', label: 'Give Online' },
-        { to: '/sacraments', label: 'Sacraments' },
+        { to: '/parish-services', label: 'Sacraments' },
       ],
     },
   ];

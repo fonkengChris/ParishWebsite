@@ -54,7 +54,7 @@ export default function PrivacyPolicy() {
                     <li>Make a donation</li>
                     <li>Contact us through our website</li>
                     <li>Subscribe to our newsletters or announcements</li>
-                    <li>Participate in events or ministries</li>
+                    <li>Participate in events or apostolates</li>
                   </ul>
                   <p className="mt-3 leading-relaxed">
                     This information may include your name, email address, phone number, mailing address, 

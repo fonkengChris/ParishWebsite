@@ -206,7 +206,7 @@ router.post('/register', validate(schemas.register), async (req, res) => {
           phone: phone || undefined
         },
         subject: `Welcome to ${parishName}!`,
-        message: `Dear ${firstName},\n\nWelcome to our parish community! We are delighted to have you join us.\n\nYour registration has been successfully completed. You can now:\n- Access your profile and update your information\n- View mass schedules and events\n- Participate in ministries\n- Stay connected with our parish community\n\nIf you have any questions or need assistance, please don't hesitate to contact us.\n\nMay God bless you,\n${parishName} Team`,
+        message: `Dear ${firstName},\n\nWelcome to our parish community! We are delighted to have you join us.\n\nYour registration has been successfully completed. You can now:\n- Access your profile and update your information\n- View mass schedules and events\n- Participate in apostolates\n- Stay connected with our parish community\n\nIf you have any questions or need assistance, please don't hesitate to contact us.\n\nMay God bless you,\n${parishName} Team`,
         htmlMessage: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #1a365d;">Welcome to ${parishName}!</h2>
@@ -216,7 +216,7 @@ router.post('/register', validate(schemas.register), async (req, res) => {
             <ul style="line-height: 1.8;">
               <li>Access your profile and update your information</li>
               <li>View mass schedules and events</li>
-              <li>Participate in ministries</li>
+              <li>Participate in apostolates</li>
               <li>Stay connected with our parish community</li>
             </ul>
             <p>If you have any questions or need assistance, please don't hesitate to contact us.</p>
@@ -280,8 +280,8 @@ router.get('/profile/by-email/:email', async (req, res) => {
 
     const parishioner = await Parishioner.findById(user.parishioner)
       .populate('missionStation', 'name location')
-      .populate('ministries', 'name');
-    
+      .populate('apostolates', 'name');
+
     if (!parishioner) {
       return res.status(404).json({ message: 'Parishioner not found' });
     }

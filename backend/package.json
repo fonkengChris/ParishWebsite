@@ -13,6 +13,8 @@
     "test": "cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest",
     "create-admin": "node scripts/createAdmin.js",
     "seed-parish": "node scripts/seedParishConfig.js",
+    "seed-sacraments": "node scripts/seedSacraments.js",
+    "seed-parish-services": "node scripts/seedParishServices.js",
     "seed-schedules": "node scripts/seedMassSchedules.js",
     "seed-schedules:clear": "node scripts/seedMassSchedules.js --clear",
     "check-parishioners": "node scripts/checkParishioners.js",

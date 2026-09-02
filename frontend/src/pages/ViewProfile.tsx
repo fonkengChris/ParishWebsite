@@ -87,10 +87,10 @@ export default function ViewProfile() {
     return 'Not assigned';
   };
 
-  // Helper to get ministries names
-  const getMinistriesNames = (): string[] => {
-    if (!parishioner?.ministries || parishioner.ministries.length === 0) return [];
-    return parishioner.ministries.map(m => 
+  // Helper to get apostolate names
+  const getApostolatesNames = (): string[] => {
+    if (!parishioner?.apostolates || parishioner.apostolates.length === 0) return [];
+    return parishioner.apostolates.map(m =>
       typeof m === 'object' ? m.name : 'Unknown'
     );
   };
@@ -363,12 +363,12 @@ export default function ViewProfile() {
             </section>
           )}
 
-          {/* Ministries */}
-          {getMinistriesNames().length > 0 && (
+          {/* Apostolates */}
+          {getApostolatesNames().length > 0 && (
             <section className="border-t border-gray-200 pt-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Ministries</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Apostolates</h2>
               <div className="flex flex-wrap gap-2">
-                {getMinistriesNames().map((name, index) => (
+                {getApostolatesNames().map((name, index) => (
                   <span
                     key={index}
                     className="px-4 py-2 bg-primary-100 text-primary-800 rounded-full text-sm font-medium"

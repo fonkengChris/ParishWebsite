@@ -99,7 +99,7 @@ router.post(
         const subjectMap = {
           'general': 'General Inquiry',
           'sacraments': 'Sacraments Inquiry',
-          'ministries': 'Ministries Inquiry',
+          'apostolates': 'Apostolates Inquiry',
           'events': 'Events Inquiry',
           'other': 'Other Inquiry'
         };

@@ -270,7 +270,7 @@ export default function Contact() {
                     <option value="">Select a subject</option>
                     <option value="general">General Inquiry</option>
                     <option value="sacraments">Sacraments</option>
-                    <option value="ministries">Ministries</option>
+                    <option value="apostolates">Apostolates</option>
                     <option value="events">Events</option>
                     <option value="other">Other</option>
                   </select>

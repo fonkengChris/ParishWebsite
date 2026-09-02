@@ -50,7 +50,7 @@ userSchema.methods.comparePassword = async function(password) {
 };
 
 // Permission helper methods
-// Editor permissions: MassSchedule, Announcements, Events, Ministries, Gallery
+// Editor permissions: MassSchedule, Announcements, Events, Apostolates, Gallery
 // Priest permissions: All editor permissions + Prayers, Sermons, LiturgicalColors
 // Parish-priest and Admin: All privileges (highest level)
 
@@ -63,7 +63,7 @@ userSchema.methods.canAccess = function(resource) {
   }
   
   // Editor permissions
-  const editorResources = ['MassSchedule', 'Announcements', 'Events', 'Ministries', 'Gallery'];
+  const editorResources = ['MassSchedule', 'Announcements', 'Events', 'Apostolates', 'Gallery'];
   if (editorResources.includes(resource)) {
     return role === 'editor' || role === 'priest' || role === 'parish-priest' || role === 'admin';
   }

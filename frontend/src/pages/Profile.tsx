@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Layout from '../components/Layout';
-import { authAPI, parishionersAPI, missionStationsAPI, ministriesAPI } from '../services/api';
-import type { Parishioner, MissionStation, Ministry } from '../types';
+import { authAPI, parishionersAPI, missionStationsAPI, apostolatesAPI } from '../services/api';
+import type { Parishioner, MissionStation, Apostolate } from '../types';
 
 export default function EditProfile() {
   const { id } = useParams<{ id: string }>();
   const [parishioner, setParishioner] = useState<Parishioner | null>(null);
   const [missionStations, setMissionStations] = useState<MissionStation[]>([]);
-  const [ministries, setMinistries] = useState<Ministry[]>([]);
+  const [apostolates, setApostolates] = useState<Apostolate[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -47,8 +47,8 @@ export default function EditProfile() {
     marriageDate: '',
     marriageLocation: '',
     
-    // Ministries
-    selectedMinistries: [] as string[],
+    // Apostolates
+    selectedApostolates: [] as string[],
     
     // Notes
     notes: '',
@@ -57,12 +57,12 @@ export default function EditProfile() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [stationsData, ministriesData] = await Promise.all([
+        const [stationsData, apostolatesData] = await Promise.all([
           missionStationsAPI.getAll(),
-          ministriesAPI.getAll(),
+          apostolatesAPI.getAll(),
         ]);
         setMissionStations(stationsData);
-        setMinistries(ministriesData);
+        setApostolates(apostolatesData);
 
         // Try to load parishioner data
         if (id) {
@@ -125,8 +125,8 @@ export default function EditProfile() {
         confirmationLocation: data.sacraments?.confirmation?.location || '',
         marriageDate: data.sacraments?.marriage?.date ? data.sacraments.marriage.date.split('T')[0] : '',
         marriageLocation: data.sacraments?.marriage?.location || '',
-        selectedMinistries: data.ministries
-          ? data.ministries.map(m => typeof m === 'object' && m !== null ? m._id : m as string)
+        selectedApostolates: data.apostolates
+          ? data.apostolates.map(m => typeof m === 'object' && m !== null ? m._id : m as string)
           : [],
         notes: data.notes || '',
       });
@@ -184,12 +184,12 @@ export default function EditProfile() {
     });
   };
 
-  const handleMinistryChange = (ministryId: string) => {
+  const handleApostolateChange = (apostolateId: string) => {
     setFormData({
       ...formData,
-      selectedMinistries: formData.selectedMinistries.includes(ministryId)
-        ? formData.selectedMinistries.filter(id => id !== ministryId)
-        : [...formData.selectedMinistries, ministryId],
+      selectedApostolates: formData.selectedApostolates.includes(apostolateId)
+        ? formData.selectedApostolates.filter(id => id !== apostolateId)
+        : [...formData.selectedApostolates, apostolateId],
     });
   };
 
@@ -236,7 +236,7 @@ export default function EditProfile() {
             ? { date: formData.marriageDate, location: formData.marriageLocation || undefined }
             : undefined,
         },
-        ministries: formData.selectedMinistries.length > 0 ? formData.selectedMinistries : undefined,
+        apostolates: formData.selectedApostolates.length > 0 ? formData.selectedApostolates : undefined,
         notes: formData.notes || undefined,
       };
 
@@ -679,19 +679,19 @@ export default function EditProfile() {
             </div>
           </section>
 
-          {/* Ministries */}
+          {/* Apostolates */}
           <section className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-semibold mb-4">Ministries of Interest</h2>
+            <h2 className="text-2xl font-semibold mb-4">Apostolates of Interest</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {ministries.map((ministry) => (
-                <label key={ministry._id} className="flex items-center space-x-2 cursor-pointer">
+              {apostolates.map((apostolate) => (
+                <label key={apostolate._id} className="flex items-center space-x-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={formData.selectedMinistries.includes(ministry._id)}
-                    onChange={() => handleMinistryChange(ministry._id)}
+                    checked={formData.selectedApostolates.includes(apostolate._id)}
+                    onChange={() => handleApostolateChange(apostolate._id)}
                     className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                   />
-                  <span className="text-gray-700">{ministry.name}</span>
+                  <span className="text-gray-700">{apostolate.name}</span>
                 </label>
               ))}
             </div>

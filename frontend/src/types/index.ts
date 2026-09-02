@@ -44,13 +44,41 @@ export interface MassSchedule {
   updatedAt?: string;
 }
 
-export interface Ministry {
+export interface MeetingSchedule {
+  day?: string;
+  time?: string;
+  location?: string;
+}
+
+export interface Apostolate {
   _id: string;
   name: string;
   description: string;
-  leader?: string;
+  meetingSchedules?: MeetingSchedule[];
   photo?: string;
-  contactInfo?: string;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Sacrament {
+  _id: string;
+  name: string;
+  description?: string;
+  availability?: string;
+  procedure?: string;
+  order?: number;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ParishService {
+  _id: string;
+  name: string;
+  description?: string;
+  details?: string;
+  order?: number;
   isActive?: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -138,7 +166,7 @@ export interface Parishioner {
     confirmation?: { date?: string; location?: string };
     marriage?: { date?: string; location?: string };
   };
-  ministries?: (Ministry | string)[];
+  apostolates?: (Apostolate | string)[];
   notes?: string;
   isActive?: boolean;
   createdAt?: string;

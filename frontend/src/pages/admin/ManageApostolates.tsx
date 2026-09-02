@@ -1,33 +1,48 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ministriesAPI } from '../../services/api';
+import { apostolatesAPI } from '../../services/api';
 import { getStoredUser } from '../../utils/auth';
-import type { Ministry } from '../../types';
+import type { Apostolate, MeetingSchedule } from '../../types';
 
-export default function ManageMinistries() {
+interface ApostolateForm {
+  name: string;
+  description: string;
+  meetingSchedules: MeetingSchedule[];
+  photo: string;
+  isActive: boolean;
+}
+
+const emptyForm: ApostolateForm = {
+  name: '',
+  description: '',
+  meetingSchedules: [{ day: '', time: '', location: '' }],
+  photo: '',
+  isActive: true,
+};
+
+const summariseSchedules = (schedules?: MeetingSchedule[]): string => {
+  if (!schedules || schedules.length === 0) return '-';
+  const first = [schedules[0].day, schedules[0].time].filter(Boolean).join(' · ') || '—';
+  return schedules.length > 1 ? `${first} (+${schedules.length - 1} more)` : first;
+};
+
+export default function ManageApostolates() {
   const navigate = useNavigate();
   const [user, setUser] = useState(getStoredUser());
-  const [ministries, setMinistries] = useState<Ministry[]>([]);
+  const [apostolates, setApostolates] = useState<Apostolate[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<Ministry | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    leader: '',
-    photo: '',
-    contactInfo: '',
-    isActive: true,
-  });
+  const [editing, setEditing] = useState<Apostolate | null>(null);
+  const [formData, setFormData] = useState<ApostolateForm>(emptyForm);
   const hasFetchedRef = useRef(false);
 
-  const fetchMinistries = useCallback(async () => {
+  const fetchApostolates = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await ministriesAPI.getAllAdmin();
-      setMinistries(data);
+      const data = await apostolatesAPI.getAllAdmin();
+      setApostolates(data);
     } catch (error) {
-      console.error('Error fetching ministries:', error);
+      console.error('Error fetching apostolates:', error);
     } finally {
       setLoading(false);
     }
@@ -36,71 +51,94 @@ export default function ManageMinistries() {
   useEffect(() => {
     const currentUser = getStoredUser();
     setUser(currentUser);
-    
+
     if (!currentUser) {
       navigate('/login');
       return;
     }
 
-    // Only fetch once on mount
     if (!hasFetchedRef.current) {
       hasFetchedRef.current = true;
-      fetchMinistries();
+      fetchApostolates();
     }
-  }, [navigate, fetchMinistries]);
+  }, [navigate, fetchApostolates]);
+
+  const handleScheduleChange = (index: number, field: keyof MeetingSchedule, value: string) => {
+    const updated = [...formData.meetingSchedules];
+    updated[index] = { ...updated[index], [field]: value };
+    setFormData({ ...formData, meetingSchedules: updated });
+  };
+
+  const addSchedule = () => {
+    setFormData({
+      ...formData,
+      meetingSchedules: [...formData.meetingSchedules, { day: '', time: '', location: '' }],
+    });
+  };
+
+  const removeSchedule = (index: number) => {
+    setFormData({
+      ...formData,
+      meetingSchedules: formData.meetingSchedules.filter((_, i) => i !== index),
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      // Keep only schedule rows that have at least one field filled in.
+      const meetingSchedules = formData.meetingSchedules.filter(
+        (s) => (s.day || '').trim() || (s.time || '').trim() || (s.location || '').trim()
+      );
       const submitData = {
-        ...formData,
-        leader: formData.leader || undefined,
+        name: formData.name,
+        description: formData.description,
         photo: formData.photo || undefined,
-        contactInfo: formData.contactInfo || undefined,
+        isActive: formData.isActive,
+        meetingSchedules,
       };
       if (editing) {
-        await ministriesAPI.update(editing._id, submitData);
+        await apostolatesAPI.update(editing._id, submitData);
       } else {
-        await ministriesAPI.create(submitData);
+        await apostolatesAPI.create(submitData);
       }
       setShowForm(false);
       setEditing(null);
-      setFormData({
-        name: '',
-        description: '',
-        leader: '',
-        photo: '',
-        contactInfo: '',
-        isActive: true,
-      });
-      fetchMinistries();
+      setFormData(emptyForm);
+      fetchApostolates();
     } catch (error) {
-      console.error('Error saving ministry:', error);
-      alert('Failed to save ministry');
+      console.error('Error saving apostolate:', error);
+      alert('Failed to save apostolate');
     }
   };
 
-  const handleEdit = (ministry: Ministry) => {
-    setEditing(ministry);
+  const handleEdit = (apostolate: Apostolate) => {
+    setEditing(apostolate);
     setFormData({
-      name: ministry.name,
-      description: ministry.description,
-      leader: ministry.leader || '',
-      photo: ministry.photo || '',
-      contactInfo: ministry.contactInfo || '',
-      isActive: ministry.isActive ?? true,
+      name: apostolate.name,
+      description: apostolate.description,
+      meetingSchedules:
+        apostolate.meetingSchedules && apostolate.meetingSchedules.length > 0
+          ? apostolate.meetingSchedules.map((s) => ({
+              day: s.day || '',
+              time: s.time || '',
+              location: s.location || '',
+            }))
+          : [{ day: '', time: '', location: '' }],
+      photo: apostolate.photo || '',
+      isActive: apostolate.isActive ?? true,
     });
     setShowForm(true);
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this ministry?')) return;
+    if (!confirm('Are you sure you want to delete this apostolate?')) return;
     try {
-      await ministriesAPI.delete(id);
-      fetchMinistries();
+      await apostolatesAPI.delete(id);
+      fetchApostolates();
     } catch (error) {
-      console.error('Error deleting ministry:', error);
-      alert('Failed to delete ministry');
+      console.error('Error deleting apostolate:', error);
+      alert('Failed to delete apostolate');
     }
   };
 
@@ -117,8 +155,8 @@ export default function ManageMinistries() {
                 <span className="text-white text-xl">👥</span>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Manage Ministries</h1>
-                <p className="text-sm text-gray-500">Organize and manage parish ministries</p>
+                <h1 className="text-2xl font-bold text-gray-900">Manage Apostolates</h1>
+                <p className="text-sm text-gray-500">Organize parish apostolates and their meeting schedules</p>
               </div>
             </div>
             <button
@@ -139,10 +177,10 @@ export default function ManageMinistries() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">
-              {showForm ? (editing ? 'Edit Ministry' : 'Create New Ministry') : 'All Ministries'}
+              {showForm ? (editing ? 'Edit Apostolate' : 'Create New Apostolate') : 'All Apostolates'}
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              {ministries.length} {ministries.length === 1 ? 'ministry' : 'ministries'} total
+              {apostolates.length} {apostolates.length === 1 ? 'apostolate' : 'apostolates'} total
             </p>
           </div>
           {!showForm && (
@@ -150,21 +188,14 @@ export default function ManageMinistries() {
               onClick={() => {
                 setShowForm(true);
                 setEditing(null);
-                setFormData({
-                  name: '',
-                  description: '',
-                  leader: '',
-                  photo: '',
-                  contactInfo: '',
-                  isActive: true,
-                });
+                setFormData(emptyForm);
               }}
               className="inline-flex items-center px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-green-600 to-green-700 rounded-lg hover:from-green-700 hover:to-green-800 shadow-md hover:shadow-lg transition-all duration-200"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              New Ministry
+              New Apostolate
             </button>
           )}
         </div>
@@ -174,7 +205,7 @@ export default function ManageMinistries() {
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">
-                {editing ? 'Edit Ministry' : 'Create New Ministry'}
+                {editing ? 'Edit Apostolate' : 'Create New Apostolate'}
               </h2>
               <button
                 onClick={() => {
@@ -200,7 +231,7 @@ export default function ManageMinistries() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                  placeholder="Ministry name"
+                  placeholder="Apostolate name"
                 />
               </div>
 
@@ -210,34 +241,78 @@ export default function ManageMinistries() {
                 </label>
                 <textarea
                   required
-                  rows={6}
+                  rows={5}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors resize-none"
-                  placeholder="Ministry description"
+                  placeholder="Describe the apostolate — you can include the leader and contact details here."
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Leader</label>
-                  <input
-                    type="text"
-                    value={formData.leader}
-                    onChange={(e) => setFormData({ ...formData, leader: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                    placeholder="Leader name"
-                  />
+              {/* Meeting schedules */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-semibold text-gray-700">Meeting Schedules</label>
+                  <button
+                    type="button"
+                    onClick={addSchedule}
+                    className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
+                  >
+                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add schedule
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Contact Info</label>
-                  <input
-                    type="text"
-                    value={formData.contactInfo}
-                    onChange={(e) => setFormData({ ...formData, contactInfo: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                    placeholder="Email or phone"
-                  />
+                <p className="text-xs text-gray-500 mb-3">
+                  Add one row per meeting time. Leave all fields blank to skip.
+                </p>
+                <div className="space-y-3">
+                  {formData.meetingSchedules.map((schedule, index) => (
+                    <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end p-3 bg-gray-50 rounded-lg">
+                      <div className="md:col-span-4">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Day</label>
+                        <input
+                          type="text"
+                          value={schedule.day || ''}
+                          onChange={(e) => handleScheduleChange(index, 'day', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                          placeholder="e.g. Every Thursday"
+                        />
+                      </div>
+                      <div className="md:col-span-3">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Time</label>
+                        <input
+                          type="text"
+                          value={schedule.time || ''}
+                          onChange={(e) => handleScheduleChange(index, 'time', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                          placeholder="e.g. 5:00 PM"
+                        />
+                      </div>
+                      <div className="md:col-span-4">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Location</label>
+                        <input
+                          type="text"
+                          value={schedule.location || ''}
+                          onChange={(e) => handleScheduleChange(index, 'location', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
+                          placeholder="e.g. Parish Hall"
+                        />
+                      </div>
+                      <div className="md:col-span-1">
+                        <button
+                          type="button"
+                          onClick={() => removeSchedule(index)}
+                          disabled={formData.meetingSchedules.length === 1}
+                          className="w-full px-2 py-2 text-sm font-medium text-red-600 hover:text-white hover:bg-red-600 border border-red-200 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-red-600"
+                          aria-label="Remove schedule"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -280,7 +355,7 @@ export default function ManageMinistries() {
                   type="submit"
                   className="px-6 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-green-600 to-green-700 rounded-lg hover:from-green-700 hover:to-green-800 shadow-md hover:shadow-lg transition-all duration-200"
                 >
-                  {editing ? 'Update Ministry' : 'Create Ministry'}
+                  {editing ? 'Update Apostolate' : 'Create Apostolate'}
                 </button>
               </div>
             </form>
@@ -291,34 +366,27 @@ export default function ManageMinistries() {
         {loading ? (
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-12 text-center">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-            <p className="mt-4 text-gray-600 font-medium">Loading ministries...</p>
+            <p className="mt-4 text-gray-600 font-medium">Loading apostolates...</p>
           </div>
-        ) : ministries.length === 0 ? (
+        ) : apostolates.length === 0 ? (
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-12 text-center">
             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            <h3 className="mt-4 text-lg font-medium text-gray-900">No ministries found</h3>
-            <p className="mt-2 text-sm text-gray-500">Get started by creating a new ministry.</p>
+            <h3 className="mt-4 text-lg font-medium text-gray-900">No apostolates found</h3>
+            <p className="mt-2 text-sm text-gray-500">Get started by creating a new apostolate.</p>
             <button
               onClick={() => {
                 setShowForm(true);
                 setEditing(null);
-                setFormData({
-                  name: '',
-                  description: '',
-                  leader: '',
-                  photo: '',
-                  contactInfo: '',
-                  isActive: true,
-                });
+                setFormData(emptyForm);
               }}
               className="mt-6 inline-flex items-center px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-green-600 to-green-700 rounded-lg hover:from-green-700 hover:to-green-800 shadow-md hover:shadow-lg transition-all duration-200"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              New Ministry
+              New Apostolate
             </button>
           </div>
         ) : (
@@ -331,10 +399,7 @@ export default function ManageMinistries() {
                       Name
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Leader
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Contact Info
+                      Meeting Schedule
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Status
@@ -345,42 +410,37 @@ export default function ManageMinistries() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {ministries.map((ministry) => (
-                    <tr key={ministry._id} className="hover:bg-gray-50 transition-colors">
+                  {apostolates.map((apostolate) => (
+                    <tr key={apostolate._id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-gray-900">{ministry.name}</div>
+                        <div className="text-sm font-semibold text-gray-900">{apostolate.name}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-600">
-                          {ministry.leader || '-'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-600">
-                          {ministry.contactInfo || '-'}
+                          {summariseSchedules(apostolate.meetingSchedules)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                            ministry.isActive
+                            apostolate.isActive
                               ? 'bg-green-100 text-green-800'
                               : 'bg-gray-100 text-gray-800'
                           }`}
                         >
-                          {ministry.isActive ? 'Active' : 'Inactive'}
+                          {apostolate.isActive ? 'Active' : 'Inactive'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end space-x-3">
                           <button
-                            onClick={() => handleEdit(ministry)}
+                            onClick={() => handleEdit(apostolate)}
                             className="text-green-600 hover:text-green-900 transition-colors font-medium"
                           >
                             Edit
                           </button>
                           <button
-                            onClick={() => handleDelete(ministry._id)}
+                            onClick={() => handleDelete(apostolate._id)}
                             className="text-red-600 hover:text-red-900 transition-colors font-medium"
                           >
                             Delete
@@ -398,4 +458,3 @@ export default function ManageMinistries() {
     </div>
   );
 }
-

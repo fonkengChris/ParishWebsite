@@ -10,7 +10,7 @@ router.get('/profile/:id', async (req, res) => {
     const parishioner = await Parishioner.findById(req.params.id)
       .populate('user', 'email role')
       .populate('missionStation', 'name location')
-      .populate('ministries', 'name');
+      .populate('apostolates', 'name');
     if (!parishioner) {
       return res.status(404).json({ message: 'Parishioner not found' });
     }
@@ -41,7 +41,7 @@ router.put('/profile/:id', async (req, res) => {
     )
       .populate('user', 'email role')
       .populate('missionStation', 'name location')
-      .populate('ministries', 'name');
+      .populate('apostolates', 'name');
     if (!parishioner) {
       return res.status(404).json({ message: 'Parishioner not found' });
     }
@@ -57,7 +57,7 @@ router.get('/', authenticate, requireAdmin, async (req, res) => {
     const parishioners = await Parishioner.find()
       .populate('user', 'email role')
       .populate('missionStation', 'name location')
-      .populate('ministries', 'name')
+      .populate('apostolates', 'name')
       .sort({ lastName: 1, firstName: 1 });
     res.json(parishioners);
   } catch (error) {
@@ -71,7 +71,7 @@ router.get('/:id', authenticate, requireAdmin, async (req, res) => {
     const parishioner = await Parishioner.findById(req.params.id)
       .populate('user', 'email role')
       .populate('missionStation', 'name location')
-      .populate('ministries', 'name');
+      .populate('apostolates', 'name');
     if (!parishioner) {
       return res.status(404).json({ message: 'Parishioner not found' });
     }
@@ -93,7 +93,7 @@ router.put('/:id', authenticate, requireAdmin, async (req, res) => {
     )
       .populate('user', 'email role')
       .populate('missionStation', 'name location')
-      .populate('ministries', 'name');
+      .populate('apostolates', 'name');
     if (!parishioner) {
       return res.status(404).json({ message: 'Parishioner not found' });
     }

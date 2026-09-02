@@ -47,9 +47,9 @@ const parishionerSchema = new mongoose.Schema({
     confirmation: { date: Date, location: String },
     marriage: { date: Date, location: String }
   },
-  ministries: [{
+  apostolates: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Ministry'
+    ref: 'Apostolate'
   }],
   notes: {
     type: String

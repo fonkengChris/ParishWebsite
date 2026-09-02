@@ -4,8 +4,10 @@ import type {
   Event, 
   MassSchedule, 
   MissionStation,
-  Ministry, 
-  GalleryItem, 
+  Apostolate,
+  Sacrament,
+  ParishService,
+  GalleryItem,
   Parishioner,
   Prayer,
   Sermon,
@@ -467,30 +469,84 @@ export const massScheduleAPI = {
   },
 };
 
-// Ministries API
-export const ministriesAPI = {
-  getAll: async (): Promise<Ministry[]> => {
-    const { data } = await api.get<Ministry[]>('/ministries');
+// Apostolates API
+export const apostolatesAPI = {
+  getAll: async (): Promise<Apostolate[]> => {
+    const { data } = await api.get<Apostolate[]>('/apostolates');
     return data;
   },
-  getAllAdmin: async (): Promise<Ministry[]> => {
-    const { data } = await api.get<Ministry[]>('/ministries/all');
+  getAllAdmin: async (): Promise<Apostolate[]> => {
+    const { data } = await api.get<Apostolate[]>('/apostolates/all');
     return data;
   },
-  getById: async (id: string): Promise<Ministry> => {
-    const { data } = await api.get<Ministry>(`/ministries/${id}`);
+  getById: async (id: string): Promise<Apostolate> => {
+    const { data } = await api.get<Apostolate>(`/apostolates/${id}`);
     return data;
   },
-  create: async (ministry: Partial<Ministry>): Promise<Ministry> => {
-    const { data } = await api.post<Ministry>('/ministries', ministry);
+  create: async (apostolate: Partial<Apostolate>): Promise<Apostolate> => {
+    const { data } = await api.post<Apostolate>('/apostolates', apostolate);
     return data;
   },
-  update: async (id: string, ministry: Partial<Ministry>): Promise<Ministry> => {
-    const { data } = await api.put<Ministry>(`/ministries/${id}`, ministry);
+  update: async (id: string, apostolate: Partial<Apostolate>): Promise<Apostolate> => {
+    const { data } = await api.put<Apostolate>(`/apostolates/${id}`, apostolate);
     return data;
   },
   delete: async (id: string): Promise<void> => {
-    await api.delete(`/ministries/${id}`);
+    await api.delete(`/apostolates/${id}`);
+  },
+};
+
+// Sacraments API
+export const sacramentsAPI = {
+  getAll: async (): Promise<Sacrament[]> => {
+    const { data } = await api.get<Sacrament[]>('/sacraments');
+    return data;
+  },
+  getAllAdmin: async (): Promise<Sacrament[]> => {
+    const { data } = await api.get<Sacrament[]>('/sacraments/all');
+    return data;
+  },
+  getById: async (id: string): Promise<Sacrament> => {
+    const { data } = await api.get<Sacrament>(`/sacraments/${id}`);
+    return data;
+  },
+  create: async (sacrament: Partial<Sacrament>): Promise<Sacrament> => {
+    const { data } = await api.post<Sacrament>('/sacraments', sacrament);
+    return data;
+  },
+  update: async (id: string, sacrament: Partial<Sacrament>): Promise<Sacrament> => {
+    const { data } = await api.put<Sacrament>(`/sacraments/${id}`, sacrament);
+    return data;
+  },
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/sacraments/${id}`);
+  },
+};
+
+// Parish Services API (formation & community — non-sacrament services)
+export const parishServicesAPI = {
+  getAll: async (): Promise<ParishService[]> => {
+    const { data } = await api.get<ParishService[]>('/parish-services');
+    return data;
+  },
+  getAllAdmin: async (): Promise<ParishService[]> => {
+    const { data } = await api.get<ParishService[]>('/parish-services/all');
+    return data;
+  },
+  getById: async (id: string): Promise<ParishService> => {
+    const { data } = await api.get<ParishService>(`/parish-services/${id}`);
+    return data;
+  },
+  create: async (service: Partial<ParishService>): Promise<ParishService> => {
+    const { data } = await api.post<ParishService>('/parish-services', service);
+    return data;
+  },
+  update: async (id: string, service: Partial<ParishService>): Promise<ParishService> => {
+    const { data } = await api.put<ParishService>(`/parish-services/${id}`, service);
+    return data;
+  },
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/parish-services/${id}`);
   },
 };
 

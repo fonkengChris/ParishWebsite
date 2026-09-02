@@ -12,9 +12,8 @@ import MassSchedule from './pages/MassSchedule';
 import Announcements from './pages/Announcements';
 import AnnouncementDetail from './pages/AnnouncementDetail';
 import Events from './pages/Events';
-import Ministries from './pages/Ministries';
-import Sacraments from './pages/Sacraments';
-import Gallery from './pages/Gallery';
+import ParishLife from './pages/ParishLife';
+import ParishServices from './pages/ParishServices';
 import Prayers from './pages/Prayers';
 import Sermons from './pages/Sermons';
 import OrderOfTheMass from './pages/OrderOfTheMass';
@@ -35,7 +34,9 @@ import AdminDashboard from './pages/admin/Dashboard';
 import ManageAnnouncements from './pages/admin/ManageAnnouncements';
 import ManageMassSchedule from './pages/admin/ManageMassSchedule';
 import ManageEvents from './pages/admin/ManageEvents';
-import ManageMinistries from './pages/admin/ManageMinistries';
+import ManageApostolates from './pages/admin/ManageApostolates';
+import ManageSacraments from './pages/admin/ManageSacraments';
+import ManageParishServices from './pages/admin/ManageParishServices';
 import ManageGallery from './pages/admin/ManageGallery';
 import ManagePrayers from './pages/admin/ManagePrayers';
 import ManageSermons from './pages/admin/ManageSermons';
@@ -68,9 +69,13 @@ function App() {
         <Route path="/announcements" element={<Announcements />} />
         <Route path="/announcements/:id" element={<AnnouncementDetail />} />
         <Route path="/events" element={<Events />} />
-        <Route path="/ministries" element={<Ministries />} />
-        <Route path="/sacraments" element={<Sacraments />} />
-        <Route path="/gallery" element={<Gallery />} />
+        <Route path="/parish-life" element={<ParishLife />} />
+        <Route path="/parish-services" element={<ParishServices />} />
+        {/* Legacy paths → new pages */}
+        <Route path="/ministries" element={<Navigate to="/parish-life" replace />} />
+        <Route path="/sacraments" element={<Navigate to="/parish-services" replace />} />
+        {/* Gallery is now part of the About page */}
+        <Route path="/gallery" element={<Navigate to="/about-us#gallery" replace />} />
         <Route path="/prayers" element={<Prayers />} />
         <Route path="/sermons" element={<Sermons />} />
         <Route path="/order-of-the-mass" element={<OrderOfTheMass />} />
@@ -123,10 +128,26 @@ function App() {
           }
         />
         <Route
-          path="/admin/ministries"
+          path="/admin/apostolates"
           element={
             <ProtectedRoute>
-              <ManageMinistries />
+              <ManageApostolates />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/sacraments"
+          element={
+            <ProtectedRoute>
+              <ManageSacraments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/parish-services"
+          element={
+            <ProtectedRoute>
+              <ManageParishServices />
             </ProtectedRoute>
           }
         />

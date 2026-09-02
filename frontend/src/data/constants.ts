@@ -25,7 +25,7 @@ export const PRAYER_FILTER_OPTIONS: Array<{ value: PrayerFilterValue; label: str
 export const GALLERY_CATEGORIES = [
   { value: 'general', label: 'General' },
   { value: 'events', label: 'Events' },
-  { value: 'ministries', label: 'Ministries' },
+  { value: 'apostolates', label: 'Apostolates' },
   { value: 'mass', label: 'Mass' },
   { value: 'community', label: 'Community' },
   { value: 'other', label: 'Other' },
