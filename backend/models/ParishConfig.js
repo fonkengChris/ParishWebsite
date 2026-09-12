@@ -42,6 +42,24 @@ const parishConfigSchema = new mongoose.Schema({
     name: { type: String, default: '' },
     descriptor: { type: String, default: '' }
   },
+  // Church leadership shown on the Home page. Parish-dependent: the Holy Father
+  // is the same for the universal Church, but the bishop(s) depend on the
+  // diocese this parish belongs to — so both are stored here per instance.
+  leadership: {
+    pope: {
+      name: { type: String, default: '' },
+      title: { type: String, default: '' },
+      image: { type: String, default: '' }
+    },
+    bishops: {
+      type: [{
+        name: { type: String, default: '' },
+        title: { type: String, default: '' },
+        image: { type: String, default: '' }
+      }],
+      default: []
+    }
+  },
   assets: {
     logoUrl: { type: String, default: '' },
     faviconUrl: { type: String, default: '' },

@@ -41,6 +41,21 @@ const buildFallbackConfig = () => {
       name: process.env.PARISH_PATRON_NAME || '',
       descriptor: process.env.PARISH_PATRON_DESCRIPTOR || ''
     },
+    leadership: {
+      pope: {
+        name: process.env.PARISH_POPE_NAME || 'Pope Leo XIV',
+        title: process.env.PARISH_POPE_TITLE || 'Bishop of Rome · Successor of St. Peter',
+        image: process.env.PARISH_POPE_IMAGE || '/images/Pope.jpeg'
+      },
+      bishops: (process.env.PARISH_BISHOPS || '')
+        .split(';')
+        .map((entry) => entry.trim())
+        .filter(Boolean)
+        .map((entry) => {
+          const [name = '', title = '', image = ''] = entry.split('|').map((s) => s.trim());
+          return { name, title, image };
+        })
+    },
     assets: { logoUrl: '', faviconUrl: '', heroUrl: '' },
     currency: process.env.MTN_CURRENCY || 'XAF'
   };

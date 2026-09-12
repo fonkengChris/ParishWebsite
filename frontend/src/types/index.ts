@@ -262,8 +262,17 @@ export interface ParishConfig {
   };
   tagline: string;
   patron: { name: string; descriptor: string };
+  leadership?: { pope: ChurchLeader; bishops: ChurchLeader[] };
   assets: { logoUrl: string; faviconUrl: string; heroUrl: string };
   currency: string;
+}
+
+// A single church leader (Holy Father or a diocesan bishop) shown on the Home
+// page. Lives on ParishConfig.leadership so it is configurable per parish.
+export interface ChurchLeader {
+  name: string;
+  title: string;
+  image: string;
 }
 
 // Editorial copy for the static pages — the singleton from /api/site-content.

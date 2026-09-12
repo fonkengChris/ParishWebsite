@@ -8,7 +8,7 @@ import {
   liturgicalColorAPI,
   type LiturgicalColorResponse,
 } from "../services/api";
-import { POPE, getBishopsForDiocese } from "../data/churchLeadership";
+import { getLeaders } from "../data/churchLeadership";
 import { useTheme } from "../contexts/ThemeContext";
 import { useParish } from "../contexts/ParishContext";
 import { useSiteContent } from "../contexts/SiteContentContext";
@@ -124,8 +124,7 @@ export default function Home() {
   });
   const season = seasonPhrase(liturgicalColor?.color);
   const todaySaint = saintOfTheDay?.saints?.[0];
-  const bishops = getBishopsForDiocese(parish.diocese);
-  const leaders = [POPE, ...bishops];
+  const leaders = getLeaders(parish);
 
   return (
     <Layout>

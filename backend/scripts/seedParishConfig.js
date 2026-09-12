@@ -32,6 +32,27 @@ const seed = async () => {
     .split(',')
     .map((n) => parseFloat(n.trim()) || 0);
 
+  // Office hours: '|'-separated list in PARISH_OFFICE_HOURS, else a sensible default.
+  const officeHours = process.env.PARISH_OFFICE_HOURS
+    ? process.env.PARISH_OFFICE_HOURS.split('|').map((s) => s.trim()).filter(Boolean)
+    : [
+        'Monday - Friday: 9:00 AM - 5:00 PM',
+        'Saturday: 9:00 AM - 12:00 PM',
+        'Sunday: Closed'
+      ];
+
+  // Leadership: the Holy Father (universal) plus the diocesan bishop(s).
+  // Bishops are a ';'-separated list; each is 'Name | Title | ImageUrl'.
+  //   PARISH_BISHOPS="Most Rev. Andrew Fuanya Nkea | Archbishop of Bamenda | /images/bishop.jpeg"
+  const bishops = (process.env.PARISH_BISHOPS || '')
+    .split(';')
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .map((entry) => {
+      const [name = '', title = '', image = ''] = entry.split('|').map((s) => s.trim());
+      return { name, title, image };
+    });
+
   const config = {
     key: 'default',
     name: process.env.PARISH_NAME || 'Parish Website',
@@ -46,16 +67,20 @@ const seed = async () => {
       phone: process.env.PARISH_PHONE || '',
       email: process.env.PARISH_CONTACT_EMAIL || process.env.SMTP_FROM_EMAIL || '',
       address: process.env.PARISH_ADDRESS || '',
-      officeHours: [
-        'Monday - Friday: 9:00 AM - 5:00 PM',
-        'Saturday: 9:00 AM - 12:00 PM',
-        'Sunday: Closed'
-      ]
+      officeHours
     },
     tagline: process.env.PARISH_TAGLINE || '',
     patron: {
       name: process.env.PARISH_PATRON_NAME || '',
       descriptor: process.env.PARISH_PATRON_DESCRIPTOR || ''
+    },
+    leadership: {
+      pope: {
+        name: process.env.PARISH_POPE_NAME || 'Pope Leo XIV',
+        title: process.env.PARISH_POPE_TITLE || 'Bishop of Rome · Successor of St. Peter',
+        image: process.env.PARISH_POPE_IMAGE || '/images/Pope.jpeg'
+      },
+      bishops
     },
     currency: process.env.MTN_CURRENCY || 'XAF'
   };
@@ -71,6 +96,8 @@ const seed = async () => {
   console.log(`  diocese: ${doc.diocese}`);
   console.log(`  city:    ${doc.city}, ${doc.country}`);
   console.log(`  patron:  ${doc.patron.name} — ${doc.patron.descriptor}`);
+  console.log(`  pope:    ${doc.leadership?.pope?.name || '(none)'}`);
+  console.log(`  bishops: ${doc.leadership?.bishops?.map((b) => b.name).join(', ') || '(none)'}`);
 
   console.log('\nDone.');
   await mongoose.disconnect();

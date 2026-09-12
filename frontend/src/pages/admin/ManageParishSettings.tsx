@@ -3,11 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { parishConfigAPI } from '../../services/api';
 import { getStoredUser } from '../../utils/auth';
 import { useParish } from '../../contexts/ParishContext';
-import type { ParishConfig } from '../../types';
+import type { ParishConfig, ChurchLeader } from '../../types';
 
 const inputClass =
   'w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors';
 const labelClass = 'block text-sm font-semibold text-gray-700 mb-2';
+
+const EMPTY_LEADER: ChurchLeader = { name: '', title: '', image: '' };
+const emptyLeadership = () => ({ pope: { ...EMPTY_LEADER }, bishops: [] as ChurchLeader[] });
 
 export default function ManageParishSettings() {
   const navigate = useNavigate();
@@ -48,6 +51,35 @@ export default function ManageParishSettings() {
 
   const set = <K extends keyof ParishConfig>(key: K, value: ParishConfig[K]) =>
     setForm((prev) => (prev ? { ...prev, [key]: value } : prev));
+
+  const setPope = (field: keyof ChurchLeader, value: string) =>
+    setForm((prev) => {
+      if (!prev) return prev;
+      const lead = prev.leadership ?? emptyLeadership();
+      return { ...prev, leadership: { ...lead, pope: { ...lead.pope, [field]: value } } };
+    });
+
+  const setBishop = (i: number, field: keyof ChurchLeader, value: string) =>
+    setForm((prev) => {
+      if (!prev) return prev;
+      const lead = prev.leadership ?? emptyLeadership();
+      const bishops = lead.bishops.map((b, idx) => (idx === i ? { ...b, [field]: value } : b));
+      return { ...prev, leadership: { ...lead, bishops } };
+    });
+
+  const addBishop = () =>
+    setForm((prev) => {
+      if (!prev) return prev;
+      const lead = prev.leadership ?? emptyLeadership();
+      return { ...prev, leadership: { ...lead, bishops: [...lead.bishops, { ...EMPTY_LEADER }] } };
+    });
+
+  const removeBishop = (i: number) =>
+    setForm((prev) => {
+      if (!prev) return prev;
+      const lead = prev.leadership ?? emptyLeadership();
+      return { ...prev, leadership: { ...lead, bishops: lead.bishops.filter((_, idx) => idx !== i) } };
+    });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,6 +203,65 @@ export default function ManageParishSettings() {
                   <input className={inputClass} value={form.patron.descriptor} onChange={(e) => set('patron', { ...form.patron, descriptor: e.target.value })} placeholder="e.g. Patron of the Sick" />
                 </div>
               </div>
+            </fieldset>
+
+            {/* Church Leadership */}
+            <fieldset className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+              <legend className="text-lg font-bold text-gray-900 px-2">Church Leadership</legend>
+              <p className="text-sm text-gray-500 mt-1 mb-4 px-2">
+                Shown on the Home page. The Holy Father is the same for the whole Church; the
+                bishop(s) depend on your diocese. Image URLs work like assets (e.g. <code>/images/bishop.jpeg</code>).
+              </p>
+
+              <h3 className="text-sm font-bold text-gray-800 px-2 mb-2">Holy Father</h3>
+              <div className="grid md:grid-cols-3 gap-5 mb-6">
+                <div>
+                  <label className={labelClass}>Name</label>
+                  <input className={inputClass} value={(form.leadership ?? emptyLeadership()).pope.name}
+                    onChange={(e) => setPope('name', e.target.value)} placeholder="Pope Leo XIV" />
+                </div>
+                <div>
+                  <label className={labelClass}>Title</label>
+                  <input className={inputClass} value={(form.leadership ?? emptyLeadership()).pope.title}
+                    onChange={(e) => setPope('title', e.target.value)} placeholder="Bishop of Rome · Successor of St. Peter" />
+                </div>
+                <div>
+                  <label className={labelClass}>Image URL</label>
+                  <input className={inputClass} value={(form.leadership ?? emptyLeadership()).pope.image}
+                    onChange={(e) => setPope('image', e.target.value)} placeholder="/images/Pope.jpeg" />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between px-2 mb-2">
+                <h3 className="text-sm font-bold text-gray-800">Bishop(s)</h3>
+                <button type="button" onClick={addBishop}
+                  className="text-sm font-medium text-blue-700 hover:text-blue-900">+ Add bishop</button>
+              </div>
+              {(form.leadership ?? emptyLeadership()).bishops.length === 0 ? (
+                <p className="text-sm text-gray-400 px-2">No bishops added yet.</p>
+              ) : (
+                (form.leadership ?? emptyLeadership()).bishops.map((bishop, i) => (
+                  <div key={i} className="grid md:grid-cols-[1fr_1fr_1fr_auto] gap-5 items-end mb-4">
+                    <div>
+                      <label className={labelClass}>Name</label>
+                      <input className={inputClass} value={bishop.name}
+                        onChange={(e) => setBishop(i, 'name', e.target.value)} placeholder="Most Rev. …" />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Title</label>
+                      <input className={inputClass} value={bishop.title}
+                        onChange={(e) => setBishop(i, 'title', e.target.value)} placeholder="Bishop of …" />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Image URL</label>
+                      <input className={inputClass} value={bishop.image}
+                        onChange={(e) => setBishop(i, 'image', e.target.value)} placeholder="/images/bishop.jpeg" />
+                    </div>
+                    <button type="button" onClick={() => removeBishop(i)}
+                      className="px-3 py-2.5 text-sm font-medium text-red-600 hover:text-red-800">Remove</button>
+                  </div>
+                ))
+              )}
             </fieldset>
 
             {/* Contact */}

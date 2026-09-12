@@ -4,9 +4,12 @@ node_modules/
 # Environment and secrets
 .env
 .env.local
+.env.mulang
+.env.default
 *.local
-# Personal deploy guide — contains live secrets, do not commit
+# Personal deploy guides — contain live secrets, do not commit
 DEPLOYMENT_GUIDE.md
+DEPLOYMENT_MULANG.md
 
 # Logs
 *.log
@@ -19,3 +22,5 @@ DEPLOYMENT_GUIDE.md
 # Build output
 dist/
 dist-ssr/
+
+/parish-info/MulangParish.docx

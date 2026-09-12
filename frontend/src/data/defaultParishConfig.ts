@@ -1,34 +1,52 @@
 import type { ParishConfig } from '../types';
 
 /**
- * Default parish identity — the current St. John of God values. Used by
+ * Default parish identity — St. Edmund of Abingdon Parish, Mulang. Used by
  * ParishContext as the first-paint fallback while /api/parish-config loads and
  * if the request fails. Once the DB singleton (or env fallback) is fetched it
  * takes over, so a differently-configured instance renders its own identity
- * with no rebuild.
+ * with no rebuild. (This build is the dedicated Mulang instance; the defaults
+ * are set to Mulang so there is no first-paint flash of another parish.)
  */
 export const DEFAULT_PARISH_CONFIG: ParishConfig = {
-  name: 'St. John of God Parish',
-  diocese: 'Buea Diocese',
-  dioceseUrl: 'https://bueadiocese.org',
-  city: 'Limbe',
-  region: 'Southwest Region',
+  name: 'St. Edmund of Abingdon Parish, Mulang',
+  diocese: 'Archdiocese of Bamenda',
+  dioceseUrl: 'https://www.bamendaarchdiocese.org',
+  city: 'Bamenda',
+  region: 'North West Region',
   country: 'Cameroon',
-  coordinates: { lat: 4.055278, lng: 9.228056 },
-  neighbourhood: 'Bonadikombo',
+  coordinates: { lat: 5.976625, lng: 10.153081 },
+  neighbourhood: 'Mulang',
   contact: {
-    phone: '+237 333 22 11 00',
-    email: 'info@parishlimbe.cm',
-    address: 'Bonadikombo, Limbe',
+    phone: '',
+    email: '',
+    address: '',
     officeHours: [
-      'Monday - Friday: 9:00 AM - 5:00 PM',
-      'Saturday: 9:00 AM - 12:00 PM',
+      'Monday - Friday: 8:00 AM - 12:30 PM, 3:30 PM - 5:00 PM',
+      'Saturday: 8:00 AM - 12:30 PM',
       'Sunday: Closed',
     ],
   },
   social: {},
-  tagline: 'Holy Ground',
-  patron: { name: 'St. John of God', descriptor: 'Patron of the Sick' },
+  tagline: 'A Community of Disciples journeying with Jesus Christ in His Church',
+  patron: {
+    name: 'St. Edmund of Abingdon',
+    descriptor: 'Scholar, Archbishop of Canterbury and Martyr',
+  },
+  leadership: {
+    pope: {
+      name: 'Pope Leo XIV',
+      title: 'Bishop of Rome · Successor of St. Peter',
+      image: '/images/Pope.jpeg',
+    },
+    bishops: [
+      {
+        name: 'Most Rev. Andrew Fuanya Nkea',
+        title: 'Archbishop of Bamenda',
+        image: '/images/bishop.jpeg',
+      },
+    ],
+  },
   assets: { logoUrl: '', faviconUrl: '', heroUrl: '' },
   currency: 'XAF',
 };
