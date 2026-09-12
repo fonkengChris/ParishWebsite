@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { parishConfigAPI } from '../../services/api';
+import { parishConfigAPI, uploadAPI } from '../../services/api';
 import { getStoredUser } from '../../utils/auth';
 import { useParish } from '../../contexts/ParishContext';
 import type { ParishConfig, ChurchLeader } from '../../types';
@@ -11,6 +11,68 @@ const labelClass = 'block text-sm font-semibold text-gray-700 mb-2';
 
 const EMPTY_LEADER: ChurchLeader = { name: '', title: '', image: '' };
 const emptyLeadership = () => ({ pope: { ...EMPTY_LEADER }, bishops: [] as ChurchLeader[] });
+
+/**
+ * Image field with upload + manual URL entry. Uploads the chosen file to
+ * /api/uploads and calls onChange with the returned public URL. The URL stays
+ * editable by hand so existing /images/… paths still work.
+ */
+function ImageUploadField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (url: string) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file
+    if (!file) return;
+    try {
+      setError('');
+      setUploading(true);
+      const url = await uploadAPI.uploadImage(file);
+      onChange(url);
+    } catch (err) {
+      console.error('Image upload failed:', err);
+      setError('Upload failed. Try a JPEG/PNG/WebP under 5 MB.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div>
+      <label className={labelClass}>{label}</label>
+      <div className="flex items-start gap-3">
+        {value ? (
+          <img src={value} alt="" className="w-14 h-14 rounded-lg object-cover border border-gray-200 flex-shrink-0" />
+        ) : (
+          <div className="w-14 h-14 rounded-lg border border-dashed border-gray-300 flex-shrink-0 flex items-center justify-center text-gray-300">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M4 6h16v12H4z" />
+            </svg>
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <input className={inputClass} value={value} onChange={(e) => onChange(e.target.value)} placeholder="/images/… or upload" />
+          <div className="mt-2 flex items-center gap-3">
+            <label className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors">
+              {uploading ? 'Uploading…' : 'Upload image'}
+              <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={handleFile} />
+            </label>
+            {error && <span className="text-xs text-red-600">{error}</span>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function ManageParishSettings() {
   const navigate = useNavigate();
@@ -225,11 +287,11 @@ export default function ManageParishSettings() {
                   <input className={inputClass} value={(form.leadership ?? emptyLeadership()).pope.title}
                     onChange={(e) => setPope('title', e.target.value)} placeholder="Bishop of Rome · Successor of St. Peter" />
                 </div>
-                <div>
-                  <label className={labelClass}>Image URL</label>
-                  <input className={inputClass} value={(form.leadership ?? emptyLeadership()).pope.image}
-                    onChange={(e) => setPope('image', e.target.value)} placeholder="/images/Pope.jpeg" />
-                </div>
+                <ImageUploadField
+                  label="Photo"
+                  value={(form.leadership ?? emptyLeadership()).pope.image}
+                  onChange={(url) => setPope('image', url)}
+                />
               </div>
 
               <div className="flex items-center justify-between px-2 mb-2">
@@ -241,7 +303,7 @@ export default function ManageParishSettings() {
                 <p className="text-sm text-gray-400 px-2">No bishops added yet.</p>
               ) : (
                 (form.leadership ?? emptyLeadership()).bishops.map((bishop, i) => (
-                  <div key={i} className="grid md:grid-cols-[1fr_1fr_1fr_auto] gap-5 items-end mb-4">
+                  <div key={i} className="grid md:grid-cols-[1fr_1fr_1.4fr_auto] gap-5 items-start mb-4 pb-4 border-b border-gray-100 last:border-0">
                     <div>
                       <label className={labelClass}>Name</label>
                       <input className={inputClass} value={bishop.name}
@@ -252,13 +314,13 @@ export default function ManageParishSettings() {
                       <input className={inputClass} value={bishop.title}
                         onChange={(e) => setBishop(i, 'title', e.target.value)} placeholder="Bishop of …" />
                     </div>
-                    <div>
-                      <label className={labelClass}>Image URL</label>
-                      <input className={inputClass} value={bishop.image}
-                        onChange={(e) => setBishop(i, 'image', e.target.value)} placeholder="/images/bishop.jpeg" />
-                    </div>
+                    <ImageUploadField
+                      label="Photo"
+                      value={bishop.image}
+                      onChange={(url) => setBishop(i, 'image', url)}
+                    />
                     <button type="button" onClick={() => removeBishop(i)}
-                      className="px-3 py-2.5 text-sm font-medium text-red-600 hover:text-red-800">Remove</button>
+                      className="mt-9 px-3 py-2.5 text-sm font-medium text-red-600 hover:text-red-800">Remove</button>
                   </div>
                 ))
               )}

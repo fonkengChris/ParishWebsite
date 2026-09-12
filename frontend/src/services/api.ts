@@ -754,6 +754,20 @@ export const parishConfigAPI = {
   },
 };
 
+// Upload API. Posts a single image as multipart/form-data and returns its
+// public URL (absolute, since backend and frontend deploy on separate origins).
+export const uploadAPI = {
+  uploadImage: async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('image', file);
+    const { data } = await api.post<{ url: string }>('/uploads', formData, {
+      // Let the browser set the multipart boundary; override the JSON default.
+      headers: { 'Content-Type': undefined },
+    });
+    return data.url;
+  },
+};
+
 // Site Content API (editorial copy singleton). GET may return a partial/empty
 // object; callers merge it over the shipped defaults (data/defaultSiteContent).
 export const siteContentAPI = {

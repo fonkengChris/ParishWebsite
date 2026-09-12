@@ -21,6 +21,7 @@ import donationRoutes from '../routes/donations.js';
 import chatRoutes from '../routes/chat.js';
 import parishConfigRoutes from '../routes/parishConfig.js';
 import siteContentRoutes from '../routes/siteContent.js';
+import uploadRoutes from '../routes/uploads.js';
 
 export const setupRoutes = (app) => {
   // Health check endpoint
@@ -55,6 +56,7 @@ export const setupRoutes = (app) => {
   app.use('/api/chat', chatRoutes);
   app.use('/api/parish-config', parishConfigRoutes);
   app.use('/api/site-content', siteContentRoutes);
+  app.use('/api/uploads', uploadRoutes);
 
   // 404 handler for undefined routes
   app.use('*', (req, res) => {
