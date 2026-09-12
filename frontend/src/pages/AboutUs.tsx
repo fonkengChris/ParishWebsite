@@ -90,16 +90,44 @@ export default function AboutUs() {
         <section className="mb-16">
           <p className="text-xs tracking-[0.2em] uppercase font-bold text-gold mb-2">Those Who Serve</p>
           <h2 className="font-serif font-medium text-ink text-3xl md:text-4xl mb-6">Pastoral Team</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {about.pastoralTeam.map((member, i) => (
-              <div
-                key={i}
-                className="bg-white border border-line rounded-2xl p-7 hover:border-primary-600 hover:-translate-y-0.5 transition-all duration-200"
-              >
-                <h3 className="font-serif font-semibold text-xl text-ink mb-2">{member.role}</h3>
-                <p className="text-ink-soft leading-relaxed">{member.description}</p>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {about.pastoralTeam.map((member, i) => {
+              const label = member.name || member.role;
+              const initials = label
+                .split(/\s+/)
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((w) => w[0])
+                .join('')
+                .toUpperCase();
+              return (
+                <div
+                  key={i}
+                  className="bg-white border border-line rounded-2xl p-7 text-center flex flex-col items-center hover:border-primary-600 hover:-translate-y-0.5 transition-all duration-200"
+                >
+                  {member.image ? (
+                    <img
+                      src={member.image}
+                      alt={label}
+                      className="w-28 h-28 rounded-full object-cover border border-line mb-5"
+                    />
+                  ) : (
+                    <div className="w-28 h-28 rounded-full bg-ivory-2 border border-line flex items-center justify-center mb-5">
+                      <span className="font-display text-2xl text-primary-700">{initials || '✝'}</span>
+                    </div>
+                  )}
+                  {member.name ? (
+                    <>
+                      <h3 className="font-serif font-semibold text-xl text-ink">{member.name}</h3>
+                      <p className="text-xs tracking-[0.15em] uppercase font-bold text-gold mt-1 mb-3">{member.role}</p>
+                    </>
+                  ) : (
+                    <h3 className="font-serif font-semibold text-xl text-ink mb-3">{member.role}</h3>
+                  )}
+                  <p className="text-ink-soft leading-relaxed text-sm">{member.description}</p>
+                </div>
+              );
+            })}
           </div>
         </section>
 

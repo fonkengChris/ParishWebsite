@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { siteContentAPI } from '../../services/api';
 import { getStoredUser } from '../../utils/auth';
 import { useSiteContent } from '../../contexts/SiteContentContext';
+import ImageUploadField from '../../components/admin/ImageUploadField';
 import type { SiteContent, SiteContentCard } from '../../types';
 
 const inputClass =
@@ -192,11 +193,17 @@ export default function ManageSiteContent() {
               <div className="space-y-3">
                 {about.pastoralTeam.map((member, i) => (
                   <div key={i} className="flex gap-2 items-start border border-gray-200 rounded-lg p-3 bg-gray-50/60">
-                    <div className="flex-1 grid md:grid-cols-2 gap-3">
-                      <input className={inputClass} placeholder="Role" value={member.role}
-                        onChange={(e) => setAbout({ pastoralTeam: about.pastoralTeam.map((m, idx) => idx === i ? { ...m, role: e.target.value } : m) })} />
+                    <div className="flex-1 space-y-3">
+                      <div className="grid md:grid-cols-2 gap-3">
+                        <input className={inputClass} placeholder="Name (e.g. Fr. John Doe)" value={member.name || ''}
+                          onChange={(e) => setAbout({ pastoralTeam: about.pastoralTeam.map((m, idx) => idx === i ? { ...m, name: e.target.value } : m) })} />
+                        <input className={inputClass} placeholder="Role" value={member.role}
+                          onChange={(e) => setAbout({ pastoralTeam: about.pastoralTeam.map((m, idx) => idx === i ? { ...m, role: e.target.value } : m) })} />
+                      </div>
                       <input className={inputClass} placeholder="Description" value={member.description}
                         onChange={(e) => setAbout({ pastoralTeam: about.pastoralTeam.map((m, idx) => idx === i ? { ...m, description: e.target.value } : m) })} />
+                      <ImageUploadField label="Photo" value={member.image || ''}
+                        onChange={(url) => setAbout({ pastoralTeam: about.pastoralTeam.map((m, idx) => idx === i ? { ...m, image: url } : m) })} />
                     </div>
                     <button type="button" className="px-3 py-2 text-sm font-medium text-red-600 hover:text-red-800"
                       onClick={() => setAbout({ pastoralTeam: about.pastoralTeam.filter((_, idx) => idx !== i) })}>Remove</button>
@@ -204,7 +211,7 @@ export default function ManageSiteContent() {
                 ))}
               </div>
               <button type="button" className="mt-2 text-sm font-medium text-blue-600 hover:text-blue-800"
-                onClick={() => setAbout({ pastoralTeam: [...about.pastoralTeam, { role: '', description: '' }] })}>+ Add team member</button>
+                onClick={() => setAbout({ pastoralTeam: [...about.pastoralTeam, { name: '', role: '', description: '', image: '' }] })}>+ Add team member</button>
             </div>
             <Field label="Get in Touch" textarea value={about.getInTouch} onChange={(v) => setAbout({ getInTouch: v })} />
           </Section>

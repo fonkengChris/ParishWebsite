@@ -48,8 +48,10 @@ const siteContentSchema = new mongoose.Schema({
     missionPoints: { type: [String], default: [] },
     pastoralTeam: {
       type: [{
+        name: { type: String, default: '' },
         role: { type: String, default: '' },
-        description: { type: String, default: '' }
+        description: { type: String, default: '' },
+        image: { type: String, default: '' }
       }],
       default: []
     },

@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { parishConfigAPI, uploadAPI } from '../../services/api';
+import { parishConfigAPI } from '../../services/api';
 import { getStoredUser } from '../../utils/auth';
 import { useParish } from '../../contexts/ParishContext';
+import ImageUploadField from '../../components/admin/ImageUploadField';
 import type { ParishConfig, ChurchLeader } from '../../types';
 
 const inputClass =
@@ -11,68 +12,6 @@ const labelClass = 'block text-sm font-semibold text-gray-700 mb-2';
 
 const EMPTY_LEADER: ChurchLeader = { name: '', title: '', image: '' };
 const emptyLeadership = () => ({ pope: { ...EMPTY_LEADER }, bishops: [] as ChurchLeader[] });
-
-/**
- * Image field with upload + manual URL entry. Uploads the chosen file to
- * /api/uploads and calls onChange with the returned public URL. The URL stays
- * editable by hand so existing /images/… paths still work.
- */
-function ImageUploadField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (url: string) => void;
-}) {
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = ''; // allow re-selecting the same file
-    if (!file) return;
-    try {
-      setError('');
-      setUploading(true);
-      const url = await uploadAPI.uploadImage(file);
-      onChange(url);
-    } catch (err) {
-      console.error('Image upload failed:', err);
-      setError('Upload failed. Try a JPEG/PNG/WebP under 5 MB.');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  return (
-    <div>
-      <label className={labelClass}>{label}</label>
-      <div className="flex items-start gap-3">
-        {value ? (
-          <img src={value} alt="" className="w-14 h-14 rounded-lg object-cover border border-gray-200 flex-shrink-0" />
-        ) : (
-          <div className="w-14 h-14 rounded-lg border border-dashed border-gray-300 flex-shrink-0 flex items-center justify-center text-gray-300">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M4 6h16v12H4z" />
-            </svg>
-          </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <input className={inputClass} value={value} onChange={(e) => onChange(e.target.value)} placeholder="/images/… or upload" />
-          <div className="mt-2 flex items-center gap-3">
-            <label className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors">
-              {uploading ? 'Uploading…' : 'Upload image'}
-              <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={handleFile} />
-            </label>
-            {error && <span className="text-xs text-red-600">{error}</span>}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function ManageParishSettings() {
   const navigate = useNavigate();
@@ -369,18 +308,21 @@ export default function ManageParishSettings() {
                 URLs to the logo, favicon, and hero image. Drop files in <code>frontend/public/</code> and reference them (e.g. <code>/images/hero.jpg</code>), or use a full CDN URL.
               </p>
               <div className="grid md:grid-cols-3 gap-5">
-                <div>
-                  <label className={labelClass}>Logo URL</label>
-                  <input className={inputClass} value={form.assets.logoUrl} onChange={(e) => set('assets', { ...form.assets, logoUrl: e.target.value })} />
-                </div>
-                <div>
-                  <label className={labelClass}>Favicon URL</label>
-                  <input className={inputClass} value={form.assets.faviconUrl} onChange={(e) => set('assets', { ...form.assets, faviconUrl: e.target.value })} />
-                </div>
-                <div>
-                  <label className={labelClass}>Hero Image URL</label>
-                  <input className={inputClass} value={form.assets.heroUrl} onChange={(e) => set('assets', { ...form.assets, heroUrl: e.target.value })} />
-                </div>
+                <ImageUploadField
+                  label="Logo"
+                  value={form.assets.logoUrl}
+                  onChange={(url) => set('assets', { ...form.assets, logoUrl: url })}
+                />
+                <ImageUploadField
+                  label="Favicon"
+                  value={form.assets.faviconUrl}
+                  onChange={(url) => set('assets', { ...form.assets, faviconUrl: url })}
+                />
+                <ImageUploadField
+                  label="Hero Image"
+                  value={form.assets.heroUrl}
+                  onChange={(url) => set('assets', { ...form.assets, heroUrl: url })}
+                />
               </div>
             </fieldset>
 

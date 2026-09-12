@@ -310,7 +310,7 @@ export interface SiteContent {
     historyParagraphs: string[];
     missionIntro: string;
     missionPoints: string[];
-    pastoralTeam: Array<{ role: string; description: string }>;
+    pastoralTeam: Array<{ role: string; description: string; name?: string; image?: string }>;
     getInTouch: string;
   };
   pageIntros: {
