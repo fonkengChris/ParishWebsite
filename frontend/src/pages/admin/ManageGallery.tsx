@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { galleryAPI, eventsAPI } from '../../services/api';
 import { getStoredUser } from '../../utils/auth';
+import ImageUploadField from '../../components/admin/ImageUploadField';
 import type { GalleryItem, Event } from '../../types';
 import { GALLERY_CATEGORIES } from '../../data/constants';
 
@@ -284,34 +285,16 @@ export default function ManageGallery() {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Image URL <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  required
+                <ImageUploadField
                   value={formData.imageUrl}
-                  onChange={(e) => {
-                    setFormData({ ...formData, imageUrl: e.target.value });
+                  onChange={(url) => {
+                    setFormData({ ...formData, imageUrl: url });
                     if (formErrors.imageUrl) setFormErrors({ ...formErrors, imageUrl: '' });
                   }}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-colors ${
-                    formErrors.imageUrl ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="https://example.com/image.jpg or /images/image.jpg"
+                  placeholder="Upload, or paste https://… or /images/…"
                 />
                 {formErrors.imageUrl && (
                   <p className="mt-1 text-sm text-red-600">{formErrors.imageUrl}</p>
-                )}
-                {formData.imageUrl && (
-                  <div className="mt-3">
-                    <p className="text-sm text-gray-600 mb-2">Preview:</p>
-                    <img
-                      src={formData.imageUrl}
-                      alt="Preview"
-                      className="h-32 w-32 object-cover rounded-lg border border-gray-300"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                  </div>
                 )}
               </div>
               

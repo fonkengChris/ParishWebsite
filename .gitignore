@@ -23,7 +23,4 @@ DEPLOYMENT_MULANG.md
 dist/
 dist-ssr/
 
-# Admin-uploaded files (served at /uploads, not source-controlled)
-backend/uploads/
-
 /parish-info/MulangParish.docx

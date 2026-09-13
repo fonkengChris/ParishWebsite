@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { sermonsAPI } from '../../services/api';
 import { getStoredUser } from '../../utils/auth';
+import ImageUploadField from '../../components/admin/ImageUploadField';
 import type { Sermon } from '../../types';
 
 export default function ManageSermons() {
@@ -296,13 +297,10 @@ export default function ManageSermons() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Image URL</label>
-                <input
-                  type="url"
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Image</label>
+                <ImageUploadField
                   value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
-                  placeholder="https://example.com/image.jpg"
+                  onChange={(url) => setFormData({ ...formData, image: url })}
                 />
               </div>
               <div className="flex items-center p-4 bg-gray-50 rounded-lg">
