@@ -99,7 +99,7 @@ export default function Navbar() {
           {/* Brand */}
           <Link
             to="/"
-            className="flex items-center gap-3 flex-shrink-0 min-w-0 group"
+            className="flex items-center gap-3 min-w-0 flex-1 lg:flex-initial group"
           >
             <span
               className="flex items-center justify-center w-10 h-10 text-white text-xl font-serif bg-primary-600 flex-shrink-0 transition-colors duration-300"
@@ -112,7 +112,7 @@ export default function Navbar() {
               <span className="block font-serif text-lg md:text-xl font-semibold text-ink leading-none truncate">
                 {parish.name}
               </span>
-              <span className="block text-[0.58rem] tracking-[0.22em] uppercase font-bold text-ink-soft mt-1">
+              <span className="block text-[0.58rem] tracking-[0.22em] uppercase font-bold text-ink-soft mt-1 truncate">
                 {parish.city}
               </span>
             </span>
