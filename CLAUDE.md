@@ -86,8 +86,13 @@ Warm, reverent identity chosen over 3 alternatives. Standalone mockups kept in
 `components/Logo.tsx` → `<LogoMark size tone variant />`. Window takes `--color-primary-600`
 (white/gold seasons fall back to ink, or stone-ivory with `tone="dark"`); chalice is a mask
 cut-out. Full drawing ≥48px, compact below. Static copies: `public/favicon.svg` (compact),
-`public/logo-mark.svg` (full, ink), `apple-touch-icon.png`, `icon-192/512.png`. Keep the
-geometry in these files in sync.
+`public/logo-mark.svg` (full, ink), `apple-touch-icon.png`, `icon-192/512.png`,
+`maskable-192/512.png` (mark at 56% for Android's safe zone). Keep the geometry in these
+files in sync.
+
+**PWA**: `vite-plugin-pwa` in `vite.config.ts` generates the manifest (name "My Parish", the
+icons above) and a Workbox service worker (`registerType: 'autoUpdate'`) that precaches the
+app shell only. `/api` is never cached, so parish data stays live.
 
 **Conventions**
 - No emoji as iconography (removed from Navbar/Footer/Home). Use type, marks (✝), or SVG.
