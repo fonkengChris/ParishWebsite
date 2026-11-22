@@ -25,6 +25,14 @@ export const DEFAULT_POPE: ChurchLeader = {
   image: '/images/Pope.jpeg',
 };
 
+// Generic stand-in for a diocese with no bishop configured or listed below.
+// No photo: the Home page shows a mark in its place.
+export const DEFAULT_BISHOP: ChurchLeader = {
+  name: 'The Diocesan Bishop',
+  title: 'Bishop of the Diocese',
+  image: '',
+};
+
 // Local ordinary/ordinaries, keyed by diocese name. A diocese may list more
 // than one bishop (e.g. an ordinary plus an auxiliary or emeritus).
 export const BISHOPS_BY_DIOCESE: Record<string, ChurchLeader[]> = {
@@ -58,9 +66,9 @@ export function getLeaders(parish: ParishConfig): ChurchLeader[] {
     ? parish.leadership.pope
     : DEFAULT_POPE;
 
-  const bishops = parish.leadership?.bishops?.length
-    ? parish.leadership.bishops
-    : getBishopsForDiocese(parish.diocese);
+  const configured = parish.leadership?.bishops?.filter((b) => b.name) ?? [];
+  const known = getBishopsForDiocese(parish.diocese);
+  const bishops = configured.length ? configured : known.length ? known : [DEFAULT_BISHOP];
 
   return [pope, ...bishops];
 }

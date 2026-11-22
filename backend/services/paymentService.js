@@ -106,7 +106,7 @@ class PaymentService {
           soft_descriptor: 'Parish Donation'
         }],
         application_context: {
-          brand_name: process.env.PARISH_NAME || 'Parish Website',
+          brand_name: process.env.PARISH_NAME || 'My Parish',
           landing_page: 'NO_PREFERENCE',
           user_action: 'PAY_NOW',
           return_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/donations/success`,

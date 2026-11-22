@@ -36,7 +36,7 @@ class EmailService {
       });
 
       this.fromEmail = SMTP_FROM_EMAIL || SMTP_USER;
-      this.fromName = SMTP_FROM_NAME || 'Parish Website';
+      this.fromName = SMTP_FROM_NAME || 'My Parish';
       this.isConfigured = true;
     } catch (error) {
       console.error('Failed to initialize email service:', error.message);

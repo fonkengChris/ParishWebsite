@@ -52,7 +52,7 @@ router.post(
 
       // Get parish contact email from environment or use default
       const parishEmail = process.env.PARISH_CONTACT_EMAIL || process.env.SMTP_FROM_EMAIL || 'info@parishlimbe.cm';
-      const parishName = process.env.PARISH_NAME || 'Parish Website';
+      const parishName = process.env.PARISH_NAME || 'My Parish';
 
       // Check if email service is configured
       if (!emailService.isConfigured) {

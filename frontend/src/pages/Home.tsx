@@ -199,12 +199,18 @@ export default function Home() {
           <div className="flex flex-wrap justify-center gap-x-12 gap-y-8">
             {leaders.map((leader) => (
               <div key={leader.name} className="flex items-center gap-4 min-w-0">
-                <span className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden ring-2 ring-gold ring-offset-2 ring-offset-ivory-2 bg-white">
-                  <img
-                    src={leader.image}
-                    alt={leader.name}
-                    className="w-full h-full object-cover"
-                  />
+                <span className="flex-shrink-0 flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden ring-2 ring-gold ring-offset-2 ring-offset-ivory-2 bg-white">
+                  {leader.image ? (
+                    <img
+                      src={leader.image}
+                      alt={leader.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="font-serif text-3xl text-gold" aria-hidden="true">
+                      ✝
+                    </span>
+                  )}
                 </span>
                 <div className="min-w-0">
                   <h3 className="font-serif font-semibold text-lg text-ink leading-snug">

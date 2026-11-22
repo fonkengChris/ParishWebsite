@@ -4,10 +4,27 @@ Guidance for working in this repository.
 
 ## Project
 
-Website for **St. John of God Parish** ("Holy Ground"), **Buea Diocese**, Limbe, Cameroon —
-a Catholic parish. Parish identity constants live in `frontend/src/components/Map.tsx`
-(`PARISH_NAME`, `PARISH_DIOCESE`, `PARISH_LOCATION`, coordinates). Patron: St. John of God,
-patron of the sick, hospitals, and nurses.
+**My Parish** — a multi-parish (SaaS-style) website for Catholic parishes. One codebase;
+each parish deploys it on its own domain with its own config. Never hard-code a particular
+parish's identity in shared code.
+
+- **App vs parish name.** "My Parish" is the product name: app metadata (web manifest,
+  `application-name`, `apple-mobile-web-app-title`, the home-screen label) and every fallback
+  when a parish name is unset. The parish's own name is what visitors see on the site.
+- **Where a parish's identity comes from.**
+  - Backend env `PARISH_*` (`PARISH_NAME`, `PARISH_DIOCESE`, `PARISH_CITY`, `PARISH_COORDINATES`,
+    `PARISH_PATRON_NAME`, …) → `scripts/seedParishConfig.js` upserts the `ParishConfig`
+    singleton → served by `routes/parishConfig.js` (env fallback if no DB doc).
+  - Frontend `ParishContext` (`useParish()`) fetches it at runtime. Use `parish.*`, not literals.
+  - Frontend build env `VITE_PARISH_NAME` (keep equal to `PARISH_NAME`): `vite.config.ts`
+    writes it into `index.html` (`<title>`, `og:title`) and it's the first-paint name in
+    `src/data/defaultParishConfig.ts`. Otherwise defaults are neutral: generic titles for
+    what visitors see ("The Diocese", "The Diocesan Bishop", "Our Patron Saint") and blank
+    for facts that mustn't be invented (contacts, hours, coordinates). `ParishContext` skips
+    empty API values, so any field a parish leaves empty falls back to these titles.
+- Example instances: `backend/.env.default` (St. John of God, Limbe, Buea Diocese) and
+  `backend/.env.mulang` (St. Edmund of Abingdon, Mulang, Archdiocese of Bamenda). Mockups and
+  seed demo data (`design-mockups/`, `scripts/seedDemoData.js`) use St. John of God.
 
 ## Stack & layout
 

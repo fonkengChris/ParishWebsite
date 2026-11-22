@@ -28,7 +28,7 @@ export const setupRoutes = (app) => {
   app.get('/api/health', (req, res) => {
     res.json({ 
       status: 'ok', 
-      message: 'Parish Website API is running',
+      message: 'My Parish API is running',
       timestamp: new Date().toISOString()
     });
   });

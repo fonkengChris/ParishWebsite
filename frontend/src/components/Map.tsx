@@ -49,7 +49,7 @@ export default function Map({
           <Popup>
             <strong>{parish.name}</strong><br />
             {parish.diocese}<br />
-            {parish.city}, {parish.country}
+            {[parish.city, parish.country].filter(Boolean).join(', ')}
           </Popup>
         </Marker>
       </MapContainer>

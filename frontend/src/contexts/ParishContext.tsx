@@ -10,6 +10,14 @@ interface ParishContextType {
   refresh: () => Promise<void>;
 }
 
+// Drops empty values so a field a parish hasn't filled in keeps its generic
+// default ("The Diocese", …) instead of rendering blank.
+function filled<T extends object>(obj: T | undefined): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(obj ?? {}).filter(([, v]) => v !== '' && v !== null && v !== undefined)
+  ) as Partial<T>;
+}
+
 const ParishContext = createContext<ParishContextType | undefined>(undefined);
 
 export function ParishProvider({ children }: { children: ReactNode }) {
@@ -39,12 +47,12 @@ export function ParishProvider({ children }: { children: ReactNode }) {
       // Merge over defaults so partial documents never leave gaps.
       const merged: ParishConfig = {
         ...DEFAULT_PARISH_CONFIG,
-        ...data,
-        coordinates: { ...DEFAULT_PARISH_CONFIG.coordinates, ...data.coordinates },
-        contact: { ...DEFAULT_PARISH_CONFIG.contact, ...data.contact },
-        social: { ...DEFAULT_PARISH_CONFIG.social, ...data.social },
-        patron: { ...DEFAULT_PARISH_CONFIG.patron, ...data.patron },
-        assets: { ...DEFAULT_PARISH_CONFIG.assets, ...data.assets },
+        ...filled(data),
+        coordinates: { ...DEFAULT_PARISH_CONFIG.coordinates, ...filled(data.coordinates) },
+        contact: { ...DEFAULT_PARISH_CONFIG.contact, ...filled(data.contact) },
+        social: { ...DEFAULT_PARISH_CONFIG.social, ...filled(data.social) },
+        patron: { ...DEFAULT_PARISH_CONFIG.patron, ...filled(data.patron) },
+        assets: { ...DEFAULT_PARISH_CONFIG.assets, ...filled(data.assets) },
       };
       setParish(merged);
       applyFavicon(merged.assets.faviconUrl);

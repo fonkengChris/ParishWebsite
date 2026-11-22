@@ -195,7 +195,7 @@ router.post('/register', validate(schemas.register), async (req, res) => {
 
     // Send welcome message to new user
     try {
-      const parishName = process.env.PARISH_NAME || 'Parish Website';
+      const parishName = process.env.PARISH_NAME || 'My Parish';
       const fullName = `${firstName} ${lastName}`;
       
       await notificationService.sendNotification({

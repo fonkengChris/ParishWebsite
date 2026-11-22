@@ -26,7 +26,7 @@ Optional - Email Service (SMTP):
 - `SMTP_USER` - SMTP username/email
 - `SMTP_PASSWORD` - SMTP password or app password
 - `SMTP_FROM_EMAIL` - From email address (defaults to SMTP_USER)
-- `SMTP_FROM_NAME` - From name (defaults to "Parish Website")
+- `SMTP_FROM_NAME` - From name (defaults to "My Parish")
 
 Optional - WhatsApp Messaging (Twilio):
 - `TWILIO_ACCOUNT_SID` - Twilio account SID

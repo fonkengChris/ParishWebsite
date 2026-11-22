@@ -55,7 +55,7 @@ const seed = async () => {
 
   const config = {
     key: 'default',
-    name: process.env.PARISH_NAME || 'Parish Website',
+    name: process.env.PARISH_NAME || 'My Parish',
     diocese: process.env.PARISH_DIOCESE || '',
     dioceseUrl: process.env.PARISH_DIOCESE_URL || '',
     city: process.env.PARISH_CITY || '',

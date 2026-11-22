@@ -52,13 +52,13 @@ export default function Footer() {
                   rel="noopener noreferrer"
                   className="text-[0.62rem] tracking-[0.2em] uppercase font-bold text-gold hover:text-white transition-colors mt-1 inline-block no-underline"
                 >
-                  {parish.diocese} · {parish.city}
+                  {[parish.diocese, parish.city].filter(Boolean).join(' · ')}
                 </a>
               </div>
             </div>
             <p className="text-sm leading-relaxed text-stone-soft">
               Serving our community with faith, hope, and love. Join us in worship and fellowship
-              on {parish.tagline}.
+              {parish.tagline ? ` on ${parish.tagline}` : ''}.
             </p>
           </div>
 
@@ -92,7 +92,7 @@ export default function Footer() {
             &copy; {currentYear} {parish.name}. All rights reserved.
           </p>
           <div className="flex items-center gap-6 text-sm">
-            <span className="text-stone-soft">{parish.diocese} · {parish.country}</span>
+            <span className="text-stone-soft">{[parish.diocese, parish.country].filter(Boolean).join(' · ')}</span>
             <Link to="/privacy-policy" className="text-stone-ivory/80 hover:text-white transition-colors duration-200">
               Privacy Policy
             </Link>
