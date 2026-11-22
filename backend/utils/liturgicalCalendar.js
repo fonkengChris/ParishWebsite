@@ -358,6 +358,29 @@ function isSameDay(a, b) {
 }
 
 /**
+ * Check if a date is one of the moveable solemnities of the Lord kept in white outside a
+ * privileged season: the Most Holy Trinity (Sunday after Pentecost), the Most Sacred Heart of
+ * Jesus (Friday after the Second Sunday after Pentecost), and Our Lord Jesus Christ, King of the
+ * Universe (last Sunday in Ordinary Time, the Sunday before the First Sunday of Advent).
+ * Corpus Christi is omitted: its day (Thursday or the following Sunday) varies by conference.
+ */
+export function isMoveableSolemnityOfTheLord(date, easter) {
+  const offsetFromEaster = (days) => {
+    const d = new Date(easter);
+    d.setDate(easter.getDate() + days);
+    return d;
+  };
+  const christTheKing = getAdventSunday(date.getFullYear(), 1);
+  christTheKing.setDate(christTheKing.getDate() - 7);
+
+  return (
+    isSameDay(date, offsetFromEaster(56)) || // Trinity Sunday
+    isSameDay(date, offsetFromEaster(68)) || // Sacred Heart
+    isSameDay(date, christTheKing)
+  );
+}
+
+/**
  * The Sundays of Advent, Lent, and Easter outrank solemnities and feasts (Table of Liturgical
  * Days). When a solemnity or feast falls on one of these Sundays, the Sunday is celebrated and
  * the solemnity is transferred. (Gaudete/Laetare/Palm Sunday/Pentecost are handled separately
@@ -505,6 +528,12 @@ export async function getLiturgicalColor(date = new Date(), override = null) {
   // dates of the transferable solemnities).
   if (isPrivilegedSunday(date, easter)) {
     return isEasterSeason(date, easter) ? LITURGICAL_COLORS.WHITE : LITURGICAL_COLORS.PURPLE;
+  }
+
+  // Moveable solemnities of the Lord (Trinity, Sacred Heart, Christ the King) outrank any
+  // saint's memorial or feast that falls on the same day.
+  if (isMoveableSolemnityOfTheLord(date, easter)) {
+    return LITURGICAL_COLORS.WHITE;
   }
 
   // Transferable solemnities (Immaculate Conception, Saint Joseph, the Annunciation) are

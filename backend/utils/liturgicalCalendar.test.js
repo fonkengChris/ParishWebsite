@@ -127,3 +127,20 @@ describe('Easter Sunday across years is white', () => {
     expect(await colorOn(date)).toBe('white');
   });
 });
+
+describe('moveable solemnities of the Lord are white', () => {
+  it.each([
+    ['Christ the King 2026', d(2026, 11, 22)],
+    ['Christ the King 2025', d(2025, 11, 23)],
+    ['Christ the King 2027', d(2027, 11, 21)],
+    ['Trinity Sunday 2026', d(2026, 5, 31)],
+    ['Sacred Heart 2026', d(2026, 6, 12)],
+  ])('%s', async (_name, date) => {
+    expect(await colorOn(date)).toBe('white');
+  });
+
+  it('the days around Christ the King keep their season colour', async () => {
+    expect(await colorOn(d(2026, 11, 21))).toBe('green'); // Saturday before: Presentation of Mary, a memorial
+    expect(await colorOn(d(2026, 11, 29))).toBe('purple'); // First Sunday of Advent
+  });
+});
