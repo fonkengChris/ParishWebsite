@@ -59,16 +59,19 @@ export default function Register() {
       };
 
       const response = await authAPI.register(registrationData);
-      
+
+      // Automatically log in the user (this clears any previously cached parishioner)
+      if (response.accessToken && response.user) {
+        setStoredUser(response.user, response.accessToken);
+      }
+
       // Store user and parishioner IDs in localStorage for profile access
       localStorage.setItem('parishionerId', response.parishioner._id);
       localStorage.setItem('userId', response.user.id);
       localStorage.setItem('parishionerEmail', formData.email);
-      
-      // Automatically log in the user
+
       if (response.accessToken && response.user) {
-        setStoredUser(response.user, response.accessToken);
-        
+
         // Redirect to home page
         navigate('/');
       } else {

@@ -292,6 +292,29 @@ router.get('/profile/by-email/:email', async (req, res) => {
   }
 });
 
+// Get the signed-in user's own parishioner profile
+router.get('/me/profile', authenticate, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId);
+    if (!user || !user.parishioner) {
+      return res.status(404).json({ message: 'This account has no parishioner profile' });
+    }
+
+    const parishioner = await Parishioner.findById(user.parishioner)
+      .populate('user', 'email role')
+      .populate('missionStation', 'name location')
+      .populate('apostolates', 'name');
+
+    if (!parishioner) {
+      return res.status(404).json({ message: 'This account has no parishioner profile' });
+    }
+
+    res.json(parishioner);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Verify token
 router.get('/verify', authenticate, (req, res) => {
   res.json({ user: req.user });

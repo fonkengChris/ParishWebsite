@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { authAPI, parishionersAPI } from '../services/api';
+import { isAuthenticated } from '../utils/auth';
 import type { Parishioner } from '../types';
 
 export default function ViewProfile() {
@@ -11,6 +12,7 @@ export default function ViewProfile() {
   const [error, setError] = useState('');
   const [emailLookup, setEmailLookup] = useState('');
   const [showEmailLookup, setShowEmailLookup] = useState(false);
+  const [noProfileForAccount, setNoProfileForAccount] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -18,6 +20,16 @@ export default function ViewProfile() {
         // Try to load parishioner data
         if (id) {
           await loadParishioner(id);
+        } else if (isAuthenticated()) {
+          // Signed in: always show the signed-in user's own profile
+          try {
+            const mine = await authAPI.getMyProfile();
+            await loadParishioner(mine._id);
+          } catch (err: any) {
+            setNoProfileForAccount(err.response?.status === 404);
+            if (err.response?.status !== 404) setError('Failed to load your profile. Please try again.');
+            setLoading(false);
+          }
         } else {
           // Check localStorage for saved ID
           const savedId = localStorage.getItem('parishionerId');
@@ -109,6 +121,21 @@ export default function ViewProfile() {
       <Layout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
           <p className="text-gray-500">Loading profile...</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (noProfileForAccount) {
+    return (
+      <Layout>
+        <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary-700 mb-3">Your Profile</p>
+          <h1 className="font-serif text-3xl text-ink mb-4">No parishioner profile</h1>
+          <p className="text-ink-soft">
+            This account is a staff account and isn&rsquo;t linked to a parishioner record.
+            Parishioner profiles are created when someone registers.
+          </p>
         </div>
       </Layout>
     );

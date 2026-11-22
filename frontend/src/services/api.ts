@@ -336,6 +336,8 @@ export const authAPI = {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('parishionerId');
+    localStorage.removeItem('parishionerEmail');
   },
   register: async (registrationData: { firstName: string; lastName: string; email: string; password: string; phone?: string }): Promise<{ message: string; accessToken: string; user: User; parishioner: { _id: string; firstName: string; lastName: string } }> => {
     const { data } = await api.post<{ message: string; accessToken: string; user: User; parishioner: { _id: string; firstName: string; lastName: string } }>('/auth/register', registrationData, {
@@ -345,6 +347,10 @@ export const authAPI = {
   },
   getProfileByEmail: async (email: string): Promise<Parishioner> => {
     const { data } = await api.get<Parishioner>(`/auth/profile/by-email/${email}`);
+    return data;
+  },
+  getMyProfile: async (): Promise<Parishioner> => {
+    const { data } = await api.get<Parishioner>('/auth/me/profile');
     return data;
   },
   verify: async () => {
