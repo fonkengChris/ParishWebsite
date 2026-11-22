@@ -10,8 +10,7 @@ export default function ViewProfile() {
   const [parishioner, setParishioner] = useState<Parishioner | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [emailLookup, setEmailLookup] = useState('');
-  const [showEmailLookup, setShowEmailLookup] = useState(false);
+  const [needsSignIn, setNeedsSignIn] = useState(false);
   const [noProfileForAccount, setNoProfileForAccount] = useState(false);
 
   useEffect(() => {
@@ -31,14 +30,8 @@ export default function ViewProfile() {
             setLoading(false);
           }
         } else {
-          // Check localStorage for saved ID
-          const savedId = localStorage.getItem('parishionerId');
-          if (savedId) {
-            await loadParishioner(savedId);
-          } else {
-            setShowEmailLookup(true);
-            setLoading(false);
-          }
+          setNeedsSignIn(true);
+          setLoading(false);
         }
       } catch (error) {
         console.error('Error loading data:', error);
@@ -52,29 +45,12 @@ export default function ViewProfile() {
     try {
       const data = await parishionersAPI.getProfile(parishionerId);
       setParishioner(data);
-      setShowEmailLookup(false);
-    } catch (err) {
-      console.error('Error loading parishioner:', err);
-      setError('Failed to load profile. Please try again or register.');
-      setShowEmailLookup(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEmailLookup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    try {
-      const data = await authAPI.getProfileByEmail(emailLookup);
-      setParishioner(data);
-      localStorage.setItem('parishionerId', data._id);
-      localStorage.setItem('parishionerEmail', emailLookup);
-      await loadParishioner(data._id);
     } catch (err: any) {
-      console.error('Email lookup error:', err);
-      setError(err.response?.data?.message || 'Profile not found with that email.');
+      console.error('Error loading parishioner:', err);
+      setError(err.response?.status === 403
+        ? 'You can only view your own profile.'
+        : 'Failed to load profile. Please try again.');
+    } finally {
       setLoading(false);
     }
   };
@@ -141,51 +117,27 @@ export default function ViewProfile() {
     );
   }
 
-  if (showEmailLookup) {
+  if (needsSignIn) {
     return (
       <Layout>
-        <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900 text-center">View Profile</h2>
-            <p className="text-gray-600 text-center">
-              Enter your registered email to view your parishioner profile.
-            </p>
-            <form onSubmit={handleEmailLookup} className="space-y-4">
-              <div>
-                <label htmlFor="emailLookup" className="sr-only">Email</label>
-                <input
-                  type="email"
-                  id="emailLookup"
-                  name="emailLookup"
-                  required
-                  value={emailLookup}
-                  onChange={(e) => setEmailLookup(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Your registered email"
-                />
-              </div>
-              {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                  <p className="text-red-800 text-sm">{error}</p>
-                </div>
-              )}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Searching...' : 'View Profile'}
-              </button>
-            </form>
-            <div className="text-center text-sm text-gray-600">
-              <p>
-                Not yet registered?{' '}
-                <Link to="/register" className="text-primary-600 hover:text-primary-700 font-medium">
-                  Register here
-                </Link>
-              </p>
-            </div>
-          </div>
+        <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary-700 mb-3">Your Profile</p>
+          <h1 className="font-serif text-3xl text-ink mb-4">Sign in to see your profile</h1>
+          <p className="text-ink-soft mb-8">
+            Your parishioner profile is private. Sign in with the email you registered with.
+          </p>
+          <Link
+            to="/login"
+            className="inline-block px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+          >
+            Sign in
+          </Link>
+          <p className="mt-6 text-sm text-ink-soft">
+            Not registered yet?{' '}
+            <Link to="/register" className="text-primary-700 hover:underline font-medium">
+              Register here
+            </Link>
+          </p>
         </div>
       </Layout>
     );

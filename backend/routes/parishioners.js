@@ -1,11 +1,24 @@
 import express from 'express';
 import Parishioner from '../models/Parishioner.js';
+import User from '../models/User.js';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Get parishioner profile by ID (public - for profile access)
-router.get('/profile/:id', async (req, res) => {
+// A profile may only be read or changed by the parishioner it belongs to, or by an admin
+const requireProfileOwnerOrAdmin = async (req, res, next) => {
+  try {
+    if (req.user.role === 'admin') return next();
+    const user = await User.findById(req.user.userId).select('parishioner');
+    if (user?.parishioner && user.parishioner.toString() === req.params.id) return next();
+    return res.status(403).json({ message: 'You can only access your own profile' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Get parishioner profile by ID (owner or admin)
+router.get('/profile/:id', authenticate, requireProfileOwnerOrAdmin, async (req, res) => {
   try {
     const parishioner = await Parishioner.findById(req.params.id)
       .populate('user', 'email role')
@@ -20,13 +33,12 @@ router.get('/profile/:id', async (req, res) => {
   }
 });
 
-// Update parishioner profile (public - by ID)
-// Note: This allows parishioners to update their own profile information
+// Update parishioner profile by ID (owner or admin)
 // Restricted fields (user, isActive) cannot be updated through this endpoint
-router.put('/profile/:id', async (req, res) => {
+router.put('/profile/:id', authenticate, requireProfileOwnerOrAdmin, async (req, res) => {
   try {
     // Fields that should NOT be updatable through public profile endpoint
-    const restrictedFields = ['user', 'isActive'];
+    const restrictedFields = ['_id', 'user', 'isActive', 'createdAt', 'updatedAt'];
     
     // Filter out restricted fields
     const updateData = { ...req.body };

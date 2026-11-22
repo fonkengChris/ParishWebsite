@@ -268,30 +268,6 @@ router.post('/register', validate(schemas.register), async (req, res) => {
   }
 });
 
-// Get parishioner profile by email (public - for profile access)
-router.get('/profile/by-email/:email', async (req, res) => {
-  try {
-    const user = await User.findOne({ email: req.params.email.toLowerCase() })
-      .populate('parishioner');
-    
-    if (!user || !user.parishioner) {
-      return res.status(404).json({ message: 'Parishioner not found' });
-    }
-
-    const parishioner = await Parishioner.findById(user.parishioner)
-      .populate('missionStation', 'name location')
-      .populate('apostolates', 'name');
-
-    if (!parishioner) {
-      return res.status(404).json({ message: 'Parishioner not found' });
-    }
-    
-    res.json(parishioner);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
 // Get the signed-in user's own parishioner profile
 router.get('/me/profile', authenticate, async (req, res) => {
   try {

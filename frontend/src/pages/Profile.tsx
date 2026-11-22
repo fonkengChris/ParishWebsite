@@ -14,8 +14,7 @@ export default function EditProfile() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [emailLookup, setEmailLookup] = useState('');
-  const [showEmailLookup, setShowEmailLookup] = useState(false);
+  const [needsSignIn, setNeedsSignIn] = useState(false);
   const [noProfileForAccount, setNoProfileForAccount] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -80,14 +79,8 @@ export default function EditProfile() {
             setLoading(false);
           }
         } else {
-          // Check localStorage for saved ID
-          const savedId = localStorage.getItem('parishionerId');
-          if (savedId) {
-            await loadParishioner(savedId);
-          } else {
-            setShowEmailLookup(true);
-            setLoading(false);
-          }
+          setNeedsSignIn(true);
+          setLoading(false);
         }
       } catch (error) {
         console.error('Error loading data:', error);
@@ -146,23 +139,6 @@ export default function EditProfile() {
     } catch (error: any) {
       setError('Profile not found. Please check your email or registration ID.');
       setLoading(false);
-    }
-  };
-
-  const handleEmailLookup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!emailLookup.trim()) {
-      setError('Please enter your email address');
-      return;
-    }
-    try {
-      const data = await authAPI.getProfileByEmail(emailLookup);
-      localStorage.setItem('parishionerId', data._id);
-      localStorage.setItem('parishionerEmail', emailLookup);
-      await loadParishioner(data._id);
-      setShowEmailLookup(false);
-    } catch (error: any) {
-      setError(error.response?.data?.message || 'Profile not found with this email address.');
     }
   };
 
@@ -290,60 +266,27 @@ export default function EditProfile() {
     );
   }
 
-  if (showEmailLookup) {
+  if (needsSignIn) {
     return (
       <Layout>
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h1 className="text-4xl font-bold mb-2">Access Your Profile</h1>
-          <p className="text-gray-600 mb-8">
-            Enter your email address to access your parishioner profile.
+        <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary-700 mb-3">Your Profile</p>
+          <h1 className="font-serif text-3xl text-ink mb-4">Sign in to see your profile</h1>
+          <p className="text-ink-soft mb-8">
+            Your parishioner profile is private. Sign in with the email you registered with.
           </p>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-              <p className="text-red-800">{error}</p>
-            </div>
-          )}
-
-          <form onSubmit={handleEmailLookup} className="bg-white rounded-lg shadow-md p-6">
-            <div className="mb-4">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address *
-              </label>
-              <input
-                type="email"
-                id="email"
-                required
-                value={emailLookup}
-                onChange={(e) => setEmailLookup(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="your.email@example.com"
-              />
-            </div>
-            <div className="flex justify-end space-x-4">
-              <Link
-                to="/"
-                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </Link>
-              <button
-                type="submit"
-                className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-              >
-                Access Profile
-              </button>
-            </div>
-          </form>
-
-          <div className="mt-6 text-center text-sm text-gray-600">
-            <p>
-              Not registered yet?{' '}
-              <Link to="/register" className="text-primary-600 hover:text-primary-700 font-medium">
-                Register here
-              </Link>
-            </p>
-          </div>
+          <Link
+            to="/login"
+            className="inline-block px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+          >
+            Sign in
+          </Link>
+          <p className="mt-6 text-sm text-ink-soft">
+            Not registered yet?{' '}
+            <Link to="/register" className="text-primary-700 hover:underline font-medium">
+              Register here
+            </Link>
+          </p>
         </div>
       </Layout>
     );

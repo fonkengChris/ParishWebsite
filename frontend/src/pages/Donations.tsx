@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { donationsAPI } from '../services/api';
 import { getStoredUser, isAuthenticated } from '../utils/auth';
-import { parishionersAPI, authAPI } from '../services/api';
+import { authAPI } from '../services/api';
 import { useSiteContent } from '../contexts/SiteContentContext';
 
 export default function Donations() {
@@ -85,25 +85,10 @@ export default function Donations() {
       // Try to get name and phone from parishioner profile
       if (user.role === 'parishioner' && user.email) {
         let parishioner = null;
-        
-        const parishionerId = localStorage.getItem('parishionerId');
-        if (parishionerId) {
-          try {
-            parishioner = await parishionersAPI.getProfile(parishionerId);
-          } catch (err) {
-            console.log('Could not load parishioner profile by ID, trying email...');
-          }
-        }
-        
-        if (!parishioner && user.email) {
-          try {
-            parishioner = await authAPI.getProfileByEmail(user.email);
-            if (parishioner?._id) {
-              localStorage.setItem('parishionerId', parishioner._id);
-            }
-          } catch (err) {
-            console.log('Could not load parishioner profile by email');
-          }
+        try {
+          parishioner = await authAPI.getMyProfile();
+        } catch (err) {
+          console.log('Could not load parishioner profile');
         }
         
         if (parishioner) {

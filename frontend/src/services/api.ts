@@ -345,10 +345,6 @@ export const authAPI = {
     });
     return data;
   },
-  getProfileByEmail: async (email: string): Promise<Parishioner> => {
-    const { data } = await api.get<Parishioner>(`/auth/profile/by-email/${email}`);
-    return data;
-  },
   getMyProfile: async (): Promise<Parishioner> => {
     const { data } = await api.get<Parishioner>('/auth/me/profile');
     return data;
@@ -587,9 +583,9 @@ export const galleryAPI = {
   },
 };
 
-// Parishioners API (handles both public profile access and admin CRUD operations)
+// Parishioners API (handles both profile access and admin CRUD operations)
 export const parishionersAPI = {
-  // Public profile routes
+  // Profile routes (the profile's owner or an admin)
   getProfile: async (id: string): Promise<Parishioner> => {
     const { data } = await api.get<Parishioner>(`/parishioners/profile/${id}`);
     return data;

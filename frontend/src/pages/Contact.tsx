@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import Map from '../components/Map';
-import { contactAPI, parishionersAPI, authAPI } from '../services/api';
+import { contactAPI, authAPI } from '../services/api';
 import { getStoredUser, isAuthenticated } from '../utils/auth';
 import { useParish } from '../contexts/ParishContext';
 import { useSiteContent } from '../contexts/SiteContentContext';
@@ -54,31 +54,12 @@ export default function Contact() {
       // If user is a parishioner, try to get their name from profile
       if (user.role === 'parishioner' && user.email) {
         let parishioner = null;
-        
-        // Try to get parishionerId from localStorage first
-        const parishionerId = localStorage.getItem('parishionerId');
-        if (parishionerId) {
-          try {
-            parishioner = await parishionersAPI.getProfile(parishionerId);
-          } catch (err) {
-            console.log('Could not load parishioner profile by ID, trying email...');
-          }
+        try {
+          parishioner = await authAPI.getMyProfile();
+        } catch (err) {
+          console.log('Could not load parishioner profile');
         }
         
-        // If we don't have parishioner data yet, try fetching by email
-        if (!parishioner && user.email) {
-          try {
-            parishioner = await authAPI.getProfileByEmail(user.email);
-            // Store the parishionerId for future use
-            if (parishioner?._id) {
-              localStorage.setItem('parishionerId', parishioner._id);
-            }
-          } catch (err) {
-            console.log('Could not load parishioner profile by email');
-          }
-        }
-        
-        // Set the name if we have parishioner data
         if (parishioner) {
           const fullName = `${parishioner.firstName || ''} ${parishioner.lastName || ''}`.trim();
           if (fullName) {
