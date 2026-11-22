@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { getStoredUser, isAuthenticated, clearStoredAuth } from "../utils/auth";
 import { useParish } from "../contexts/ParishContext";
+import { LogoMark } from "./Logo";
 import type { User } from "../types";
 
 export default function Navbar() {
@@ -101,13 +102,7 @@ export default function Navbar() {
             to="/"
             className="flex items-center gap-3 min-w-0 flex-1 lg:flex-initial group"
           >
-            <span
-              className="flex items-center justify-center w-10 h-10 text-white text-xl font-serif bg-primary-600 flex-shrink-0 transition-colors duration-300"
-              style={{ borderRadius: "50% 50% 50% 50% / 60% 60% 40% 40%" }}
-              aria-hidden="true"
-            >
-              ✝
-            </span>
+            <LogoMark size={40} className="flex-shrink-0" />
             <span className="min-w-0">
               <span className="block font-serif text-lg md:text-xl font-semibold text-ink leading-none truncate">
                 {parish.name}

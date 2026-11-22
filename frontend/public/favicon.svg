@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>.m{fill:#2a241c}@media (prefers-color-scheme:dark){.m{fill:#ece4d4}}</style>
+  <mask id="cut">
+    <rect width="64" height="64" fill="#fff"/>
+    <g transform="translate(8 10.75) scale(.75)" fill="#000">
+      <circle cx="32" cy="15" r="10"/>
+      <path d="M15 28 H49 A17 17 0 0 1 32 45 A17 17 0 0 1 15 28 Z"/>
+      <rect x="29.5" y="44" width="5" height="10"/>
+      <rect x="20" y="54" width="24" height="5" rx="2.5"/>
+    </g>
+  </mask>
+  <path class="m" d="M8 60 V32 a24 24 0 0 1 48 0 V60 Z" mask="url(#cut)"/>
+</svg>

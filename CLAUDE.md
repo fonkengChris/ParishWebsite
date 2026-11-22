@@ -65,6 +65,13 @@ Warm, reverent identity chosen over 3 alternatives. Standalone mockups kept in
   `.sanctuary-band` (+ `.s-bg`, `.s-arch`, `.s-inner` — the dark "Come and Pray" band with an
   arch-of-light glow), `.lit-soft-panel`. All recolor with the season via `--color-primary-*`.
 
+**Logo** (concept 1f "Window & Chalice", chosen 2026-11-22 from `MyParishLogoConcepts.html`):
+`components/Logo.tsx` → `<LogoMark size tone variant />`. Window takes `--color-primary-600`
+(white/gold seasons fall back to ink, or stone-ivory with `tone="dark"`); chalice is a mask
+cut-out. Full drawing ≥48px, compact below. Static copies: `public/favicon.svg` (compact),
+`public/logo-mark.svg` (full, ink), `apple-touch-icon.png`, `icon-192/512.png`. Keep the
+geometry in these files in sync.
+
 **Conventions**
 - No emoji as iconography (removed from Navbar/Footer/Home). Use type, marks (✝), or SVG.
 - Arch motif = the recurring architectural signifier. Serif (Fraunces) for display headings,

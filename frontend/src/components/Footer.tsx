@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useParish } from '../contexts/ParishContext';
+import { LogoMark } from './Logo';
 
 export default function Footer() {
   const { parish } = useParish();
@@ -42,13 +43,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="max-w-sm">
             <div className="flex items-center gap-3 mb-3">
-              <span
-                className="flex items-center justify-center w-11 h-11 text-white text-xl font-serif bg-primary-600"
-                style={{ borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%' }}
-                aria-hidden="true"
-              >
-                ✝
-              </span>
+              <LogoMark size={44} tone="dark" className="flex-shrink-0" />
               <div>
                 <h3 className="font-serif text-2xl text-white leading-none">{parish.name}</h3>
                 <a
