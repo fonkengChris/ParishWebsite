@@ -6,6 +6,7 @@ import User from '../models/User.js';
 import Parishioner from '../models/Parishioner.js';
 import RefreshToken from '../models/RefreshToken.js';
 import { authenticate } from '../middleware/auth.js';
+import { hasAdminAccess } from '../utils/permissions.js';
 import { loginRateLimiter } from '../middleware/rateLimiter.js';
 import { validatePassword } from '../utils/passwordValidation.js';
 import { validate, schemas } from '../middleware/validation.js';
@@ -21,7 +22,9 @@ const generateTokens = (user) => {
       userId: user._id, 
       username: user.username, 
       email: user.email,
-      role: user.role 
+      role: user.role,
+      permissions: user.permissions ?? [],
+      revokedPermissions: user.revokedPermissions ?? []
     },
     process.env.JWT_SECRET || 'fallback-secret',
     { expiresIn: '15m' } // Short-lived access token
@@ -30,6 +33,16 @@ const generateTokens = (user) => {
   const refreshToken = crypto.randomBytes(64).toString('hex');
   return { accessToken, refreshToken };
 };
+
+// The signed-in user as the client stores it
+const publicUser = (user) => ({
+  id: user._id,
+  username: user.username || null,
+  email: user.email || null,
+  role: user.role,
+  permissions: user.permissions ?? [],
+  revokedPermissions: user.revokedPermissions ?? []
+});
 
 // Helper function to set secure cookie
 const setRefreshTokenCookie = (res, refreshToken) => {
@@ -100,12 +113,7 @@ router.post('/login', loginRateLimiter, validate(schemas.login), async (req, res
     // Return access token in response body (client stores in memory/localStorage)
     res.json({
       accessToken,
-      user: {
-        id: user._id,
-        username: user.username || null,
-        email: user.email || null,
-        role: user.role
-      }
+      user: publicUser(user)
     });
   } catch (error) {
     errorLogger.error({ err: error, ip: req.ip }, 'Login error');
@@ -241,11 +249,7 @@ router.post('/register', validate(schemas.register), async (req, res) => {
     res.status(201).json({ 
       message: 'Registration successful! Welcome to our parish community.',
       accessToken,
-      user: {
-        id: user._id,
-        email: user.email,
-        role: user.role
-      },
+      user: publicUser(user),
       parishioner: {
         _id: parishioner._id,
         firstName: parishioner.firstName,
@@ -291,9 +295,17 @@ router.get('/me/profile', authenticate, async (req, res) => {
   }
 });
 
-// Verify token
-router.get('/verify', authenticate, (req, res) => {
-  res.json({ user: req.user });
+// Verify token and return the user fresh from the DB (role and grants may have changed)
+router.get('/verify', authenticate, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+    res.json({ user: publicUser(user) });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 // Refresh access token
@@ -320,7 +332,7 @@ router.post('/refresh', async (req, res) => {
     // Generate new access token
     const { accessToken } = generateTokens(user);
 
-    res.json({ accessToken });
+    res.json({ accessToken, user: publicUser(user) });
   } catch (error) {
     console.error('Refresh token error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -365,14 +377,13 @@ router.post('/change-password', authenticate, validate(schemas.changePassword), 
       });
     }
 
-    // Validate new password with strong rules (for admin/editor roles)
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Apply strong password rules for admin and editor roles
-    if (user.role === 'admin' || user.role === 'editor') {
+    // Apply strong password rules for anyone who can manage parish content
+    if (hasAdminAccess(user)) {
       const passwordValidation = validatePassword(newPassword);
       if (!passwordValidation.isValid) {
         return res.status(400).json({ 

@@ -1,6 +1,6 @@
 import express from 'express';
 import Prayer from '../models/Prayer.js';
-import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requirePermission } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get all prayers (admin)
-router.get('/all', authenticate, requireAdmin, async (req, res) => {
+router.get('/all', authenticate, requirePermission('Prayers'), async (req, res) => {
   try {
     const prayers = await Prayer.find().sort({ createdAt: -1 });
     res.json(prayers);
@@ -39,7 +39,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create prayer (admin)
-router.post('/', authenticate, requireAdmin, async (req, res) => {
+router.post('/', authenticate, requirePermission('Prayers'), async (req, res) => {
   try {
     const prayer = new Prayer(req.body);
     await prayer.save();
@@ -50,7 +50,7 @@ router.post('/', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Update prayer (admin)
-router.put('/:id', authenticate, requireAdmin, async (req, res) => {
+router.put('/:id', authenticate, requirePermission('Prayers'), async (req, res) => {
   try {
     const prayer = await Prayer.findByIdAndUpdate(
       req.params.id,
@@ -67,7 +67,7 @@ router.put('/:id', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Delete prayer (admin)
-router.delete('/:id', authenticate, requireAdmin, async (req, res) => {
+router.delete('/:id', authenticate, requirePermission('Prayers'), async (req, res) => {
   try {
     const prayer = await Prayer.findByIdAndDelete(req.params.id);
     if (!prayer) {

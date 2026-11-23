@@ -1,6 +1,6 @@
 import express from 'express';
 import Announcement from '../models/Announcement.js';
-import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requirePermission } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get all announcements (admin)
-router.get('/all', authenticate, requireAdmin, async (req, res) => {
+router.get('/all', authenticate, requirePermission('Announcements'), async (req, res) => {
   try {
     const announcements = await Announcement.find().sort({ date: -1 });
     res.json(announcements);
@@ -40,7 +40,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create announcement (admin)
-router.post('/', authenticate, requireAdmin, async (req, res) => {
+router.post('/', authenticate, requirePermission('Announcements'), async (req, res) => {
   try {
     const announcement = new Announcement(req.body);
     await announcement.save();
@@ -51,7 +51,7 @@ router.post('/', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Update announcement (admin)
-router.put('/:id', authenticate, requireAdmin, async (req, res) => {
+router.put('/:id', authenticate, requirePermission('Announcements'), async (req, res) => {
   try {
     const announcement = await Announcement.findByIdAndUpdate(
       req.params.id,
@@ -68,7 +68,7 @@ router.put('/:id', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Delete announcement (admin)
-router.delete('/:id', authenticate, requireAdmin, async (req, res) => {
+router.delete('/:id', authenticate, requirePermission('Announcements'), async (req, res) => {
   try {
     const announcement = await Announcement.findByIdAndDelete(req.params.id);
     if (!announcement) {

@@ -1,12 +1,12 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
 import notificationService from '../services/notificationService.js';
-import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requirePermission } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Get service status
-router.get('/status', authenticate, requireAdmin, async (req, res) => {
+router.get('/status', authenticate, requirePermission('Notifications'), async (req, res) => {
   try {
     const status = await notificationService.getServiceStatus();
     res.json(status);
@@ -16,7 +16,7 @@ router.get('/status', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Get notification history
-router.get('/history', authenticate, requireAdmin, async (req, res) => {
+router.get('/history', authenticate, requirePermission('Notifications'), async (req, res) => {
   try {
     const {
       limit = 50,
@@ -47,7 +47,7 @@ router.get('/history', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Get single notification
-router.get('/:id', authenticate, requireAdmin, async (req, res) => {
+router.get('/:id', authenticate, requirePermission('Notifications'), async (req, res) => {
   try {
     const notification = await notificationService.getNotificationById(req.params.id);
     if (!notification) {
@@ -62,7 +62,7 @@ router.get('/:id', authenticate, requireAdmin, async (req, res) => {
 // Send notification
 router.post('/send', 
   authenticate, 
-  requireAdmin,
+  requirePermission('Notifications'),
   [
     body('type').isIn(['email', 'sms', 'both']).withMessage('Type must be email, sms, or both'),
     body('recipient').isObject().withMessage('Recipient is required'),
@@ -112,7 +112,7 @@ router.post('/send',
 // Send bulk notifications
 router.post('/send-bulk',
   authenticate,
-  requireAdmin,
+  requirePermission('Notifications'),
   [
     body('recipients').isArray().notEmpty().withMessage('Recipients array is required'),
     body('type').isIn(['email', 'sms', 'both']).withMessage('Type must be email, sms, or both'),

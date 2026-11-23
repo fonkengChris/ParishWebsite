@@ -4,7 +4,7 @@ import Donation from '../models/Donation.js';
 import paymentService from '../services/paymentService.js';
 import notificationService from '../services/notificationService.js';
 import { errorLogger } from '../utils/logger.js';
-import { authenticate, requireAdminOrParishPriest } from '../middleware/auth.js';
+import { authenticate, requirePermission } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -97,7 +97,7 @@ router.get('/mtn/test-connection', async (req, res) => {
 });
 
 // Get all donations (admin/parish-priest only)
-router.get('/', authenticate, requireAdminOrParishPriest, async (req, res) => {
+router.get('/', authenticate, requirePermission('Donations'), async (req, res) => {
   try {
     const { status, paymentMethod, purpose, page = 1, limit = 20 } = req.query;
     const query = {};
@@ -131,7 +131,7 @@ router.get('/', authenticate, requireAdminOrParishPriest, async (req, res) => {
 });
 
 // Get donation by ID (admin/parish-priest only)
-router.get('/:id', authenticate, requireAdminOrParishPriest, async (req, res) => {
+router.get('/:id', authenticate, requirePermission('Donations'), async (req, res) => {
   try {
     const donation = await Donation.findById(req.params.id);
     if (!donation) {

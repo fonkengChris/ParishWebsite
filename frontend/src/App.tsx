@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { isAuthenticated } from './utils/auth';
+import { isAuthenticated, getStoredUser } from './utils/auth';
+import { can, hasAdminAccess, type Resource } from './utils/permissions';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ParishProvider } from './contexts/ParishContext';
 import { SiteContentProvider } from './contexts/SiteContentContext';
@@ -48,9 +49,13 @@ import SendMessage from './pages/admin/SendMessage';
 import ManageParishSettings from './pages/admin/ManageParishSettings';
 import ManageSiteContent from './pages/admin/ManageSiteContent';
 
-// Protected Route Component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  return isAuthenticated() ? <>{children}</> : <Navigate to="/login" replace />;
+// Protected Route Component: anyone who can manage something; with `permission`, only roles that may manage that resource
+const ProtectedRoute = ({ children, permission }: { children: React.ReactNode; permission?: Resource }) => {
+  if (!isAuthenticated()) return <Navigate to="/login" replace />;
+  const user = getStoredUser();
+  if (!hasAdminAccess(user)) return <Navigate to="/" replace />;
+  if (permission && !can(user, permission)) return <Navigate to="/admin/dashboard" replace />;
+  return <>{children}</>;
 };
 
 function App() {
@@ -106,7 +111,7 @@ function App() {
         <Route
           path="/admin/announcements"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="Announcements">
               <ManageAnnouncements />
             </ProtectedRoute>
           }
@@ -114,7 +119,7 @@ function App() {
         <Route
           path="/admin/events"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="Events">
               <ManageEvents />
             </ProtectedRoute>
           }
@@ -122,7 +127,7 @@ function App() {
         <Route
           path="/admin/mass-schedule"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="MassSchedule">
               <ManageMassSchedule />
             </ProtectedRoute>
           }
@@ -130,7 +135,7 @@ function App() {
         <Route
           path="/admin/apostolates"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="Apostolates">
               <ManageApostolates />
             </ProtectedRoute>
           }
@@ -138,7 +143,7 @@ function App() {
         <Route
           path="/admin/sacraments"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="Sacraments">
               <ManageSacraments />
             </ProtectedRoute>
           }
@@ -146,7 +151,7 @@ function App() {
         <Route
           path="/admin/parish-services"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="ParishServices">
               <ManageParishServices />
             </ProtectedRoute>
           }
@@ -154,7 +159,7 @@ function App() {
         <Route
           path="/admin/gallery"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="Gallery">
               <ManageGallery />
             </ProtectedRoute>
           }
@@ -162,7 +167,7 @@ function App() {
         <Route
           path="/admin/prayers"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="Prayers">
               <ManagePrayers />
             </ProtectedRoute>
           }
@@ -170,7 +175,7 @@ function App() {
         <Route
           path="/admin/sermons"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="Sermons">
               <ManageSermons />
             </ProtectedRoute>
           }
@@ -178,7 +183,7 @@ function App() {
         <Route
           path="/admin/mission-stations"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="MissionStations">
               <ManageMissionStations />
             </ProtectedRoute>
           }
@@ -186,7 +191,7 @@ function App() {
         <Route
           path="/admin/liturgical-colors"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="LiturgicalColors">
               <ManageLiturgicalColors />
             </ProtectedRoute>
           }
@@ -194,7 +199,7 @@ function App() {
         <Route
           path="/admin/users"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="Users">
               <ManageUsers />
             </ProtectedRoute>
           }
@@ -202,7 +207,7 @@ function App() {
         <Route
           path="/admin/donations"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="Donations">
               <ManageDonations />
             </ProtectedRoute>
           }
@@ -210,7 +215,7 @@ function App() {
         <Route
           path="/admin/send-message"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="Notifications">
               <SendMessage />
             </ProtectedRoute>
           }
@@ -218,7 +223,7 @@ function App() {
         <Route
           path="/admin/parish-settings"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="ParishConfig">
               <ManageParishSettings />
             </ProtectedRoute>
           }
@@ -226,7 +231,7 @@ function App() {
         <Route
           path="/admin/site-content"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute permission="SiteContent">
               <ManageSiteContent />
             </ProtectedRoute>
           }

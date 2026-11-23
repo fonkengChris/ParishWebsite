@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { can, canAny } from '../utils/permissions.js';
 
 export const authenticate = (req, res, next) => {
   try {
@@ -28,24 +29,24 @@ export const authenticate = (req, res, next) => {
   }
 };
 
-export const requireAdmin = (req, res, next) => {
+// Allows the request when the user's role may manage `resource` (see utils/permissions.js)
+export const requirePermission = (resource) => (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({ message: 'Authentication required' });
   }
-  if (req.user.role !== 'admin') {
-    return res.status(403).json({ message: 'Admin access required' });
+  if (!can(req.user, resource)) {
+    return res.status(403).json({ message: `You do not have permission to manage ${resource}` });
   }
   next();
 };
 
-export const requireAdminOrParishPriest = (req, res, next) => {
+// Allows the request when the user may manage at least one of `resources`
+export const requireAnyPermission = (resources) => (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({ message: 'Authentication required' });
   }
-  if (req.user.role !== 'admin' && req.user.role !== 'parish-priest') {
-    return res.status(403).json({ message: 'Admin or Parish Priest access required' });
+  if (!canAny(req.user, resources)) {
+    return res.status(403).json({ message: 'You do not have permission to do this' });
   }
   next();
 };
-
-

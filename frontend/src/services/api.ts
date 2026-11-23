@@ -283,9 +283,10 @@ api.interceptors.response.use(
           withCredentials: true // Include cookies for refresh token
         });
         
-        const { accessToken } = data;
+        const { accessToken, user } = data;
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('token', accessToken); // For backward compatibility
+        if (user) localStorage.setItem('user', JSON.stringify(user)); // Role/grants may have changed
         
         processQueue(null, accessToken);
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
@@ -323,10 +324,15 @@ export const authAPI = {
     });
     return data;
   },
-  refresh: async (): Promise<{ accessToken: string }> => {
-    const { data } = await api.post<{ accessToken: string }>('/auth/refresh', {}, {
+  // Issues a new access token and returns the user fresh from the DB (role and grants).
+  // Bypasses the interceptor so a dead session just rejects instead of redirecting to login.
+  refresh: async (): Promise<{ accessToken: string; user: User }> => {
+    const { data } = await axios.post<{ accessToken: string; user: User }>(`${getBaseURL()}/auth/refresh`, {}, {
       withCredentials: true
     });
+    localStorage.setItem('accessToken', data.accessToken);
+    localStorage.setItem('token', data.accessToken); // For backward compatibility
+    localStorage.setItem('user', JSON.stringify(data.user));
     return data;
   },
   logout: async (): Promise<void> => {
@@ -835,6 +841,10 @@ export const usersAPI = {
   },
   updateRole: async (id: string, role: User['role']): Promise<UserWithDetails> => {
     const { data } = await api.put<UserWithDetails>(`/users/${id}/role`, { role });
+    return data;
+  },
+  updatePermissions: async (id: string, permissions: string[], revokedPermissions: string[]): Promise<UserWithDetails> => {
+    const { data } = await api.put<UserWithDetails>(`/users/${id}/permissions`, { permissions, revokedPermissions });
     return data;
   },
 };

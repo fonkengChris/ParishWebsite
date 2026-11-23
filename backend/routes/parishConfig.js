@@ -1,5 +1,5 @@
 import express from 'express';
-import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requirePermission } from '../middleware/auth.js';
 import ParishConfig from '../models/ParishConfig.js';
 
 const router = express.Router();
@@ -83,7 +83,7 @@ router.get('/', async (req, res) => {
  * PUT /api/parish-config
  * Admin-only. Upserts the singleton.
  */
-router.put('/', authenticate, requireAdmin, async (req, res) => {
+router.put('/', authenticate, requirePermission('ParishConfig'), async (req, res) => {
   try {
     const update = { ...req.body, key: 'default' };
     const config = await ParishConfig.findOneAndUpdate(

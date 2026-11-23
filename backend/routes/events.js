@@ -1,6 +1,6 @@
 import express from 'express';
 import Event from '../models/Event.js';
-import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requirePermission } from '../middleware/auth.js';
 import { validate, schemas } from '../middleware/validation.js';
 
 const router = express.Router();
@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get all events (admin)
-router.get('/all', authenticate, requireAdmin, async (req, res) => {
+router.get('/all', authenticate, requirePermission('Events'), async (req, res) => {
   try {
     const events = await Event.find().sort({ startDate: 1 });
     res.json(events);
@@ -40,7 +40,7 @@ router.get('/:id', validate(schemas.idParam, 'params'), async (req, res) => {
 });
 
 // Create event (admin)
-router.post('/', authenticate, requireAdmin, validate(schemas.event), async (req, res) => {
+router.post('/', authenticate, requirePermission('Events'), validate(schemas.event), async (req, res) => {
   try {
     const event = new Event(req.body);
     await event.save();
@@ -51,7 +51,7 @@ router.post('/', authenticate, requireAdmin, validate(schemas.event), async (req
 });
 
 // Update event (admin)
-router.put('/:id', authenticate, requireAdmin, validate(schemas.idParam, 'params'), validate(schemas.event), async (req, res) => {
+router.put('/:id', authenticate, requirePermission('Events'), validate(schemas.idParam, 'params'), validate(schemas.event), async (req, res) => {
   try {
     const event = await Event.findByIdAndUpdate(
       req.params.id,
@@ -68,7 +68,7 @@ router.put('/:id', authenticate, requireAdmin, validate(schemas.idParam, 'params
 });
 
 // Delete event (admin)
-router.delete('/:id', authenticate, requireAdmin, validate(schemas.idParam, 'params'), async (req, res) => {
+router.delete('/:id', authenticate, requirePermission('Events'), validate(schemas.idParam, 'params'), async (req, res) => {
   try {
     const event = await Event.findByIdAndDelete(req.params.id);
     if (!event) {

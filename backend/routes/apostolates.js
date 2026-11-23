@@ -1,6 +1,6 @@
 import express from 'express';
 import Apostolate from '../models/Apostolate.js';
-import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requirePermission } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get all apostolates (admin)
-router.get('/all', authenticate, requireAdmin, async (req, res) => {
+router.get('/all', authenticate, requirePermission('Apostolates'), async (req, res) => {
   try {
     const apostolates = await Apostolate.find().sort({ name: 1 });
     res.json(apostolates);
@@ -39,7 +39,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create apostolate (admin)
-router.post('/', authenticate, requireAdmin, async (req, res) => {
+router.post('/', authenticate, requirePermission('Apostolates'), async (req, res) => {
   try {
     const apostolate = new Apostolate(req.body);
     await apostolate.save();
@@ -50,7 +50,7 @@ router.post('/', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Update apostolate (admin)
-router.put('/:id', authenticate, requireAdmin, async (req, res) => {
+router.put('/:id', authenticate, requirePermission('Apostolates'), async (req, res) => {
   try {
     const apostolate = await Apostolate.findByIdAndUpdate(
       req.params.id,
@@ -67,7 +67,7 @@ router.put('/:id', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Delete apostolate (admin)
-router.delete('/:id', authenticate, requireAdmin, async (req, res) => {
+router.delete('/:id', authenticate, requirePermission('Apostolates'), async (req, res) => {
   try {
     const apostolate = await Apostolate.findByIdAndDelete(req.params.id);
     if (!apostolate) {

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { ROLES, GRANTABLE, can } from '../utils/permissions.js';
 
 const userSchema = new mongoose.Schema({
   // For admin/editor users
@@ -23,7 +24,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'editor', 'priest', 'parish-priest', 'parishioner'],
+    enum: ROLES,
     required: true
   },
   // One-to-one relationship with Parishioner (only for parishioner role)
@@ -31,6 +32,16 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Parishioner',
     default: null
+  },
+  // Individual adjustments to the role (see utils/permissions.js): extra areas granted,
+  // and areas the role would give but that were taken away
+  permissions: {
+    type: [{ type: String, enum: GRANTABLE }],
+    default: []
+  },
+  revokedPermissions: {
+    type: [{ type: String, enum: GRANTABLE }],
+    default: []
   }
 }, {
   timestamps: true
@@ -49,32 +60,9 @@ userSchema.methods.comparePassword = async function(password) {
   return bcrypt.compare(password, this.passwordHash);
 };
 
-// Permission helper methods
-// Editor permissions: MassSchedule, Announcements, Events, Apostolates, Gallery
-// Priest permissions: All editor permissions + Prayers, Sermons, LiturgicalColors
-// Parish-priest and Admin: All privileges (highest level)
-
+// Permission helper methods (rules live in utils/permissions.js)
 userSchema.methods.canAccess = function(resource) {
-  const role = this.role;
-  
-  // Highest level roles have access to everything
-  if (role === 'admin' || role === 'parish-priest') {
-    return true;
-  }
-  
-  // Editor permissions
-  const editorResources = ['MassSchedule', 'Announcements', 'Events', 'Apostolates', 'Gallery'];
-  if (editorResources.includes(resource)) {
-    return role === 'editor' || role === 'priest' || role === 'parish-priest' || role === 'admin';
-  }
-  
-  // Priest-only permissions (in addition to editor permissions)
-  const priestResources = ['Prayers', 'Sermons', 'LiturgicalColors'];
-  if (priestResources.includes(resource)) {
-    return role === 'priest' || role === 'parish-priest' || role === 'admin';
-  }
-  
-  return false;
+  return can(this, resource);
 };
 
 userSchema.methods.hasRole = function(...roles) {

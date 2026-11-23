@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { donationsAPI } from '../../services/api';
 import { getStoredUser } from '../../utils/auth';
+import { can } from '../../utils/permissions';
 import type { Donation } from '../../types';
 
 export default function ManageDonations() {
@@ -55,8 +56,7 @@ export default function ManageDonations() {
       return;
     }
 
-    // Check if user has admin or parish-priest role
-    if (!['admin', 'parish-priest'].includes(currentUser.role)) {
+    if (!can(currentUser, 'Donations')) {
       navigate('/');
       return;
     }

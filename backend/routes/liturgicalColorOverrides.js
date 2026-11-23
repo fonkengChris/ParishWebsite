@@ -1,6 +1,6 @@
 import express from 'express';
 import { body, param, validationResult } from 'express-validator';
-import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requirePermission } from '../middleware/auth.js';
 import LiturgicalColorOverride from '../models/LiturgicalColorOverride.js';
 import { LITURGICAL_COLORS } from '../utils/liturgicalCalendar.js';
 
@@ -13,7 +13,7 @@ router.options('*', (req, res) => {
 
 // All routes require authentication and admin access
 router.use(authenticate);
-router.use(requireAdmin);
+router.use(requirePermission('LiturgicalColors'));
 
 /**
  * GET /api/liturgical-color-overrides

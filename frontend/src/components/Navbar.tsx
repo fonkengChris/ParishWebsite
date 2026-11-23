@@ -1,9 +1,14 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { getStoredUser, isAuthenticated, clearStoredAuth } from "../utils/auth";
+import { authAPI } from "../services/api";
 import { useParish } from "../contexts/ParishContext";
 import { LogoMark } from "./Logo";
+import { hasAdminAccess } from "../utils/permissions";
 import type { User } from "../types";
+
+// Role and grants can change while someone is signed in; re-read them once per page load
+let userRefreshed = false;
 
 export default function Navbar() {
   const { parish } = useParish();
@@ -25,6 +30,17 @@ export default function Navbar() {
       setUser(null);
     }
   }, [location]);
+
+  useEffect(() => {
+    if (userRefreshed || !isAuthenticated()) return;
+    userRefreshed = true;
+    authAPI
+      .refresh()
+      .then(({ user }) => setUser(user))
+      .catch(() => {
+        // Keep the stored user; an expired session is handled on the next API call
+      });
+  }, []);
 
   // Get user initials
   const getUserInitials = (user: User | null): string => {
@@ -80,12 +96,6 @@ export default function Navbar() {
       location.pathname === link.path ||
       (link.path === "/prayers" && location.pathname.startsWith("/prayers")),
   );
-
-  // Check if user has a role above parishioner
-  const hasAdminAccess = (user: User | null): boolean => {
-    if (!user) return false;
-    return ["admin", "parish-priest", "priest", "editor"].includes(user.role);
-  };
 
   // Shared pill classes
   const pill =

@@ -1,14 +1,15 @@
 import express from 'express';
 import Parishioner from '../models/Parishioner.js';
 import User from '../models/User.js';
-import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requirePermission } from '../middleware/auth.js';
+import { can } from '../utils/permissions.js';
 
 const router = express.Router();
 
-// A profile may only be read or changed by the parishioner it belongs to, or by an admin
+// A profile may only be read or changed by the parishioner it belongs to, or by staff who manage parishioners
 const requireProfileOwnerOrAdmin = async (req, res, next) => {
   try {
-    if (req.user.role === 'admin') return next();
+    if (can(req.user, 'Parishioners')) return next();
     const user = await User.findById(req.user.userId).select('parishioner');
     if (user?.parishioner && user.parishioner.toString() === req.params.id) return next();
     return res.status(403).json({ message: 'You can only access your own profile' });
@@ -64,7 +65,7 @@ router.put('/profile/:id', authenticate, requireProfileOwnerOrAdmin, async (req,
 });
 
 // Get all parishioners (admin only)
-router.get('/', authenticate, requireAdmin, async (req, res) => {
+router.get('/', authenticate, requirePermission('Parishioners'), async (req, res) => {
   try {
     const parishioners = await Parishioner.find()
       .populate('user', 'email role')
@@ -78,7 +79,7 @@ router.get('/', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Get single parishioner (admin only)
-router.get('/:id', authenticate, requireAdmin, async (req, res) => {
+router.get('/:id', authenticate, requirePermission('Parishioners'), async (req, res) => {
   try {
     const parishioner = await Parishioner.findById(req.params.id)
       .populate('user', 'email role')
@@ -94,7 +95,7 @@ router.get('/:id', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Update parishioner (admin only)
-router.put('/:id', authenticate, requireAdmin, async (req, res) => {
+router.put('/:id', authenticate, requirePermission('Parishioners'), async (req, res) => {
   try {
     const updateData = { ...req.body };
     
@@ -116,7 +117,7 @@ router.put('/:id', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Delete parishioner (admin only)
-router.delete('/:id', authenticate, requireAdmin, async (req, res) => {
+router.delete('/:id', authenticate, requirePermission('Parishioners'), async (req, res) => {
   try {
     const parishioner = await Parishioner.findByIdAndDelete(req.params.id);
     if (!parishioner) {

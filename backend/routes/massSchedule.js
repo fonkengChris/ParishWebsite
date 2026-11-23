@@ -1,6 +1,6 @@
 import express from 'express';
 import MassSchedule from '../models/MassSchedule.js';
-import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requirePermission } from '../middleware/auth.js';
 import { validate, schemas } from '../middleware/validation.js';
 
 const router = express.Router();
@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get all schedules (admin)
-router.get('/all', authenticate, requireAdmin, async (req, res) => {
+router.get('/all', authenticate, requirePermission('MassSchedule'), async (req, res) => {
   try {
     const schedules = await MassSchedule.find()
       .populate('missionStation', 'name location')
@@ -49,7 +49,7 @@ router.get('/:id', validate(schemas.idParam, 'params'), async (req, res) => {
 });
 
 // Create schedule (admin)
-router.post('/', authenticate, requireAdmin, validate(schemas.massSchedule), async (req, res) => {
+router.post('/', authenticate, requirePermission('MassSchedule'), validate(schemas.massSchedule), async (req, res) => {
   try {
     const schedule = new MassSchedule(req.body);
     await schedule.save();
@@ -61,7 +61,7 @@ router.post('/', authenticate, requireAdmin, validate(schemas.massSchedule), asy
 });
 
 // Update schedule (admin)
-router.put('/:id', authenticate, requireAdmin, validate(schemas.idParam, 'params'), validate(schemas.massSchedule), async (req, res) => {
+router.put('/:id', authenticate, requirePermission('MassSchedule'), validate(schemas.idParam, 'params'), validate(schemas.massSchedule), async (req, res) => {
   try {
     const schedule = await MassSchedule.findByIdAndUpdate(
       req.params.id,
@@ -78,7 +78,7 @@ router.put('/:id', authenticate, requireAdmin, validate(schemas.idParam, 'params
 });
 
 // Delete schedule (admin)
-router.delete('/:id', authenticate, requireAdmin, validate(schemas.idParam, 'params'), async (req, res) => {
+router.delete('/:id', authenticate, requirePermission('MassSchedule'), validate(schemas.idParam, 'params'), async (req, res) => {
   try {
     const schedule = await MassSchedule.findByIdAndDelete(req.params.id);
     if (!schedule) {

@@ -128,6 +128,8 @@ export interface User {
   username?: string; // Optional for parishioner role
   email?: string; // Optional for admin/editor roles
   role: 'admin' | 'editor' | 'priest' | 'parish-priest' | 'parishioner';
+  permissions?: string[]; // Areas granted on top of the role (see utils/permissions.ts)
+  revokedPermissions?: string[]; // Areas the role gives that were taken away
 }
 
 export interface AuthResponse {

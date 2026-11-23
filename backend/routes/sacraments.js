@@ -1,6 +1,6 @@
 import express from 'express';
 import Sacrament from '../models/Sacrament.js';
-import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requirePermission } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get all sacraments (admin)
-router.get('/all', authenticate, requireAdmin, async (req, res) => {
+router.get('/all', authenticate, requirePermission('Sacraments'), async (req, res) => {
   try {
     const sacraments = await Sacrament.find().sort({ order: 1, name: 1 });
     res.json(sacraments);
@@ -39,7 +39,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create sacrament (admin)
-router.post('/', authenticate, requireAdmin, async (req, res) => {
+router.post('/', authenticate, requirePermission('Sacraments'), async (req, res) => {
   try {
     const sacrament = new Sacrament(req.body);
     await sacrament.save();
@@ -50,7 +50,7 @@ router.post('/', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Update sacrament (admin)
-router.put('/:id', authenticate, requireAdmin, async (req, res) => {
+router.put('/:id', authenticate, requirePermission('Sacraments'), async (req, res) => {
   try {
     const sacrament = await Sacrament.findByIdAndUpdate(
       req.params.id,
@@ -67,7 +67,7 @@ router.put('/:id', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Delete sacrament (admin)
-router.delete('/:id', authenticate, requireAdmin, async (req, res) => {
+router.delete('/:id', authenticate, requirePermission('Sacraments'), async (req, res) => {
   try {
     const sacrament = await Sacrament.findByIdAndDelete(req.params.id);
     if (!sacrament) {

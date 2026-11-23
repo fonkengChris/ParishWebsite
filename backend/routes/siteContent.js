@@ -1,5 +1,5 @@
 import express from 'express';
-import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requirePermission } from '../middleware/auth.js';
 import SiteContent from '../models/SiteContent.js';
 
 const router = express.Router();
@@ -46,7 +46,7 @@ router.get('/', async (req, res) => {
  * PUT /api/site-content
  * Admin-only. Deep-merges the payload into the existing singleton (upsert).
  */
-router.put('/', authenticate, requireAdmin, async (req, res) => {
+router.put('/', authenticate, requirePermission('SiteContent'), async (req, res) => {
   try {
     const existing = await SiteContent.findOne({ key: 'default' });
 

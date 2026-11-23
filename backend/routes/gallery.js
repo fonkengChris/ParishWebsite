@@ -1,6 +1,6 @@
 import express from 'express';
 import GalleryItem from '../models/GalleryItem.js';
-import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requirePermission } from '../middleware/auth.js';
 import { validate, schemas } from '../middleware/validation.js';
 
 const router = express.Router();
@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get all gallery items (admin)
-router.get('/all', authenticate, requireAdmin, async (req, res) => {
+router.get('/all', authenticate, requirePermission('Gallery'), async (req, res) => {
   try {
     const galleryItems = await GalleryItem.find()
       .populate('eventId', 'title')
@@ -44,7 +44,7 @@ router.get('/:id', validate(schemas.idParam, 'params'), async (req, res) => {
 });
 
 // Create gallery item (admin)
-router.post('/', authenticate, requireAdmin, validate(schemas.galleryItem), async (req, res) => {
+router.post('/', authenticate, requirePermission('Gallery'), validate(schemas.galleryItem), async (req, res) => {
   try {
     const galleryItem = new GalleryItem(req.body);
     await galleryItem.save();
@@ -56,7 +56,7 @@ router.post('/', authenticate, requireAdmin, validate(schemas.galleryItem), asyn
 });
 
 // Update gallery item (admin)
-router.put('/:id', authenticate, requireAdmin, validate(schemas.idParam, 'params'), validate(schemas.galleryItem), async (req, res) => {
+router.put('/:id', authenticate, requirePermission('Gallery'), validate(schemas.idParam, 'params'), validate(schemas.galleryItem), async (req, res) => {
   try {
     const galleryItem = await GalleryItem.findByIdAndUpdate(
       req.params.id,
@@ -73,7 +73,7 @@ router.put('/:id', authenticate, requireAdmin, validate(schemas.idParam, 'params
 });
 
 // Delete gallery item (admin)
-router.delete('/:id', authenticate, requireAdmin, validate(schemas.idParam, 'params'), async (req, res) => {
+router.delete('/:id', authenticate, requirePermission('Gallery'), validate(schemas.idParam, 'params'), async (req, res) => {
   try {
     const galleryItem = await GalleryItem.findByIdAndDelete(req.params.id);
     if (!galleryItem) {

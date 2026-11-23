@@ -1,6 +1,6 @@
 import express from 'express';
 import MissionStation from '../models/MissionStation.js';
-import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requirePermission } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get all mission stations (admin)
-router.get('/all', authenticate, requireAdmin, async (req, res) => {
+router.get('/all', authenticate, requirePermission('MissionStations'), async (req, res) => {
   try {
     const stations = await MissionStation.find().sort({ name: 1 });
     res.json(stations);
@@ -39,7 +39,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create mission station (admin)
-router.post('/', authenticate, requireAdmin, async (req, res) => {
+router.post('/', authenticate, requirePermission('MissionStations'), async (req, res) => {
   try {
     const station = new MissionStation(req.body);
     await station.save();
@@ -50,7 +50,7 @@ router.post('/', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Update mission station (admin)
-router.put('/:id', authenticate, requireAdmin, async (req, res) => {
+router.put('/:id', authenticate, requirePermission('MissionStations'), async (req, res) => {
   try {
     const station = await MissionStation.findByIdAndUpdate(
       req.params.id,
@@ -67,7 +67,7 @@ router.put('/:id', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Delete mission station (admin)
-router.delete('/:id', authenticate, requireAdmin, async (req, res) => {
+router.delete('/:id', authenticate, requirePermission('MissionStations'), async (req, res) => {
   try {
     const station = await MissionStation.findByIdAndDelete(req.params.id);
     if (!station) {

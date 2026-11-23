@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { announcementsAPI, eventsAPI } from '../../services/api';
+import { announcementsAPI, authAPI, eventsAPI } from '../../services/api';
 import { getStoredUser, clearStoredAuth } from '../../utils/auth';
+import { can, type Resource } from '../../utils/permissions';
 
 interface QuickLink {
   to: string;
@@ -9,28 +10,26 @@ interface QuickLink {
   label: string;
   description: string;
   color: string;
+  permission: Resource;
 }
 
 const quickLinks: QuickLink[] = [
-  { to: '/admin/announcements', icon: '📢', label: 'Announcements', description: 'Manage parish announcements', color: 'from-blue-500 to-blue-600' },
-  { to: '/admin/events', icon: '📅', label: 'Events', description: 'Schedule and manage events', color: 'from-purple-500 to-purple-600' },
-  { to: '/admin/mass-schedule', icon: '⛪', label: 'Mass Schedule', description: 'Update mass times', color: 'from-indigo-500 to-indigo-600' },
-  { to: '/admin/apostolates', icon: '👥', label: 'Apostolates', description: 'Manage apostolates & meeting times', color: 'from-green-500 to-green-600' },
-  { to: '/admin/sacraments', icon: '✝', label: 'Sacraments', description: 'Set sacrament availability & procedure', color: 'from-amber-500 to-amber-600' },
-  { to: '/admin/parish-services', icon: '🤝', label: 'Parish Services', description: 'Youth formation, small communities & more', color: 'from-indigo-500 to-indigo-600' },
-  { to: '/admin/gallery', icon: '🖼️', label: 'Gallery', description: 'Manage photo gallery', color: 'from-pink-500 to-pink-600' },
-  { to: '/admin/prayers', icon: '🙏', label: 'Prayers', description: 'Manage prayer resources', color: 'from-yellow-500 to-yellow-600' },
-  { to: '/admin/sermons', icon: '📖', label: 'Sermons', description: 'Manage sermon content', color: 'from-teal-500 to-teal-600' },
-  { to: '/admin/mission-stations', icon: '📍', label: 'Mission Stations', description: 'Manage mission stations', color: 'from-orange-500 to-orange-600' },
-  { to: '/admin/liturgical-colors', icon: '🎨', label: 'Liturgical Colors', description: 'Configure liturgical colors', color: 'from-rose-500 to-rose-600' },
-  { to: '/admin/donations', icon: '💰', label: 'Donations', description: 'View and manage donations', color: 'from-emerald-500 to-emerald-600' },
-  { to: '/admin/send-message', icon: '✉️', label: 'Send Message', description: 'Email or WhatsApp parishioners', color: 'from-cyan-500 to-cyan-600' },
-];
-
-const adminOnlyLinks: QuickLink[] = [
-  { to: '/admin/users', icon: '👤', label: 'Users', description: 'Manage user roles and permissions', color: 'from-purple-500 to-purple-600' },
-  { to: '/admin/parish-settings', icon: '🏛️', label: 'Parish Settings', description: 'Identity, contacts, branding & assets', color: 'from-slate-500 to-slate-600' },
-  { to: '/admin/site-content', icon: '📝', label: 'Site Content', description: 'Edit Home & About page copy', color: 'from-amber-500 to-amber-600' },
+  { to: '/admin/announcements', icon: '📢', label: 'Announcements', description: 'Manage parish announcements', color: 'from-blue-500 to-blue-600', permission: 'Announcements' },
+  { to: '/admin/events', icon: '📅', label: 'Events', description: 'Schedule and manage events', color: 'from-purple-500 to-purple-600', permission: 'Events' },
+  { to: '/admin/mass-schedule', icon: '⛪', label: 'Mass Schedule', description: 'Update mass times', color: 'from-indigo-500 to-indigo-600', permission: 'MassSchedule' },
+  { to: '/admin/apostolates', icon: '👥', label: 'Apostolates', description: 'Manage apostolates & meeting times', color: 'from-green-500 to-green-600', permission: 'Apostolates' },
+  { to: '/admin/sacraments', icon: '✝', label: 'Sacraments', description: 'Set sacrament availability & procedure', color: 'from-amber-500 to-amber-600', permission: 'Sacraments' },
+  { to: '/admin/parish-services', icon: '🤝', label: 'Parish Services', description: 'Youth formation, small communities & more', color: 'from-indigo-500 to-indigo-600', permission: 'ParishServices' },
+  { to: '/admin/gallery', icon: '🖼️', label: 'Gallery', description: 'Manage photo gallery', color: 'from-pink-500 to-pink-600', permission: 'Gallery' },
+  { to: '/admin/prayers', icon: '🙏', label: 'Prayers', description: 'Manage prayer resources', color: 'from-yellow-500 to-yellow-600', permission: 'Prayers' },
+  { to: '/admin/sermons', icon: '📖', label: 'Sermons', description: 'Manage sermon content', color: 'from-teal-500 to-teal-600', permission: 'Sermons' },
+  { to: '/admin/mission-stations', icon: '📍', label: 'Mission Stations', description: 'Manage mission stations', color: 'from-orange-500 to-orange-600', permission: 'MissionStations' },
+  { to: '/admin/liturgical-colors', icon: '🎨', label: 'Liturgical Colors', description: 'Configure liturgical colors', color: 'from-rose-500 to-rose-600', permission: 'LiturgicalColors' },
+  { to: '/admin/donations', icon: '💰', label: 'Donations', description: 'View and manage donations', color: 'from-emerald-500 to-emerald-600', permission: 'Donations' },
+  { to: '/admin/send-message', icon: '✉️', label: 'Send Message', description: 'Email or WhatsApp parishioners', color: 'from-cyan-500 to-cyan-600', permission: 'Notifications' },
+  { to: '/admin/users', icon: '👤', label: 'Users', description: 'Manage user roles and permissions', color: 'from-purple-500 to-purple-600', permission: 'Users' },
+  { to: '/admin/parish-settings', icon: '🏛️', label: 'Parish Settings', description: 'Identity, contacts, branding & assets', color: 'from-slate-500 to-slate-600', permission: 'ParishConfig' },
+  { to: '/admin/site-content', icon: '📝', label: 'Site Content', description: 'Edit Home & About page copy', color: 'from-amber-500 to-amber-600', permission: 'SiteContent' },
 ];
 
 export default function AdminDashboard() {
@@ -46,9 +45,17 @@ export default function AdminDashboard() {
   const fetchStats = useCallback(async () => {
     try {
       setLoading(true);
+      // Pick up role/grant changes made since sign-in, with a token that carries them
+      let currentUser = getStoredUser();
+      try {
+        currentUser = (await authAPI.refresh()).user;
+        setUser(currentUser);
+      } catch {
+        // Keep the stored user; the API interceptor handles a dead session
+      }
       const [announcements, events] = await Promise.all([
-        announcementsAPI.getAllAdmin(),
-        eventsAPI.getAllAdmin(),
+        can(currentUser, 'Announcements') ? announcementsAPI.getAllAdmin() : [],
+        can(currentUser, 'Events') ? eventsAPI.getAllAdmin() : [],
       ]);
       setStats({
         announcements: announcements.length,
@@ -131,7 +138,7 @@ export default function AdminDashboard() {
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {user.username}!
+            Welcome back, {user.username || user.email}!
           </h2>
           <p className="text-gray-600">
             Manage your parish content and settings from this dashboard.
@@ -139,7 +146,9 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats Cards */}
+        {(can(user, 'Announcements') || can(user, 'Events')) && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
+          {can(user, 'Announcements') && (
           <Link
             to="/admin/announcements"
             className="group relative bg-white rounded-xl shadow-sm hover:shadow-xl border border-gray-200 overflow-hidden transition-all duration-300 transform hover:-translate-y-1"
@@ -163,7 +172,9 @@ export default function AdminDashboard() {
               <p className="text-sm text-gray-500">Total active announcements</p>
             </div>
           </Link>
+          )}
 
+          {can(user, 'Events') && (
           <Link
             to="/admin/events"
             className="group relative bg-white rounded-xl shadow-sm hover:shadow-xl border border-gray-200 overflow-hidden transition-all duration-300 transform hover:-translate-y-1"
@@ -187,7 +198,9 @@ export default function AdminDashboard() {
               <p className="text-sm text-gray-500">Total scheduled events</p>
             </div>
           </Link>
+          )}
         </div>
+        )}
 
         {/* Quick Links */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
@@ -198,36 +211,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {quickLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className="group relative p-5 bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-lg hover:border-transparent hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
-              >
-                <div className={`absolute inset-0 bg-gradient-to-br ${link.color} opacity-0 group-hover:opacity-5 rounded-lg transition-opacity duration-300`}></div>
-                <div className="relative flex items-start space-x-4">
-                  <div className={`flex-shrink-0 w-12 h-12 bg-gradient-to-br ${link.color} rounded-lg flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow duration-300 transform group-hover:scale-110`}>
-                    <span className="text-2xl">{link.icon}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-semibold text-gray-900 group-hover:text-primary-600 transition-colors duration-200 mb-1">
-                      {link.label}
-                    </h3>
-                    <p className="text-sm text-gray-500 line-clamp-2">
-                      {link.description}
-                    </p>
-                    <div className="mt-2 flex items-center text-xs font-medium text-primary-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      Manage
-                      <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-            {/* Admin/Parish-Priest Only Links */}
-            {(user.role === 'admin' || user.role === 'parish-priest') && adminOnlyLinks.map((link) => (
+            {quickLinks.filter((link) => can(user, link.permission)).map((link) => (
               <Link
                 key={link.to}
                 to={link.to}

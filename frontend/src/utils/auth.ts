@@ -34,9 +34,3 @@ export const clearStoredAuth = (): void => {
 export const isAuthenticated = (): boolean => {
   return !!(localStorage.getItem('accessToken') || localStorage.getItem('token'));
 };
-
-export const isAdmin = (): boolean => {
-  const user = getStoredUser();
-  return user?.role === 'admin' || false;
-};
-

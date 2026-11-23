@@ -1,6 +1,6 @@
 import express from 'express';
 import Sermon from '../models/Sermon.js';
-import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requirePermission } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -22,7 +22,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get all sermons and catechisis (admin)
-router.get('/all', authenticate, requireAdmin, async (req, res) => {
+router.get('/all', authenticate, requirePermission('Sermons'), async (req, res) => {
   try {
     const { type } = req.query;
     const query = {};
@@ -50,7 +50,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create sermon (admin)
-router.post('/', authenticate, requireAdmin, async (req, res) => {
+router.post('/', authenticate, requirePermission('Sermons'), async (req, res) => {
   try {
     const sermon = new Sermon(req.body);
     await sermon.save();
@@ -61,7 +61,7 @@ router.post('/', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Update sermon (admin)
-router.put('/:id', authenticate, requireAdmin, async (req, res) => {
+router.put('/:id', authenticate, requirePermission('Sermons'), async (req, res) => {
   try {
     const sermon = await Sermon.findByIdAndUpdate(
       req.params.id,
@@ -78,7 +78,7 @@ router.put('/:id', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Delete sermon (admin)
-router.delete('/:id', authenticate, requireAdmin, async (req, res) => {
+router.delete('/:id', authenticate, requirePermission('Sermons'), async (req, res) => {
   try {
     const sermon = await Sermon.findByIdAndDelete(req.params.id);
     if (!sermon) {

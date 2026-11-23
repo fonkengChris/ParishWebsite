@@ -1,6 +1,6 @@
 import express from 'express';
 import ParishService from '../models/ParishService.js';
-import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requirePermission } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get all parish services (admin)
-router.get('/all', authenticate, requireAdmin, async (req, res) => {
+router.get('/all', authenticate, requirePermission('ParishServices'), async (req, res) => {
   try {
     const services = await ParishService.find().sort({ order: 1, name: 1 });
     res.json(services);
@@ -39,7 +39,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create parish service (admin)
-router.post('/', authenticate, requireAdmin, async (req, res) => {
+router.post('/', authenticate, requirePermission('ParishServices'), async (req, res) => {
   try {
     const service = new ParishService(req.body);
     await service.save();
@@ -50,7 +50,7 @@ router.post('/', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Update parish service (admin)
-router.put('/:id', authenticate, requireAdmin, async (req, res) => {
+router.put('/:id', authenticate, requirePermission('ParishServices'), async (req, res) => {
   try {
     const service = await ParishService.findByIdAndUpdate(
       req.params.id,
@@ -67,7 +67,7 @@ router.put('/:id', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Delete parish service (admin)
-router.delete('/:id', authenticate, requireAdmin, async (req, res) => {
+router.delete('/:id', authenticate, requirePermission('ParishServices'), async (req, res) => {
   try {
     const service = await ParishService.findByIdAndDelete(req.params.id);
     if (!service) {

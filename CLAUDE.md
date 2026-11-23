@@ -107,6 +107,21 @@ app shell only. `/api` is never cached, so parish data stays live.
 - **Not yet migrated:** the ~40 inner pages (`pages/*`, `pages/admin/*`) still use the older
   gradient/rounded-2xl/emoji styling. When touching one, migrate it to the tokens/fonts above.
 
+## Roles & permissions
+
+Roles rank `parishioner < editor < priest < parish-priest = admin`; a higher rank inherits
+everything below it. The resource → minimum-role map lives in `backend/utils/permissions.js`
+(enforced via `requirePermission('Resource')` in `middleware/auth.js`) and is mirrored in
+`frontend/src/utils/permissions.ts` (route guards, dashboard tiles, Navbar). Keep the two in
+sync; never check `role === '…'` directly. Users can only grant/change roles at or below their own.
+Admins/parish-priests can adjust any user below admin rank per area (Admin → Users,
+`PUT /api/users/:id/permissions`): grant extras (`User.permissions`) or revoke areas the role
+gives (`User.revokedPermissions`). Access = (role OR grant) AND NOT revoked; admin and
+parish-priest always have everything. Only differences from the role are stored
+(`normalizeAdjustments`, also re-applied on role change). `Users` is never adjustable; image
+uploads follow any image-using area (`UPLOAD_RESOURCES`). Adjustments travel in the JWT, so they
+take effect on the next token refresh (≤15 min, or the next page load).
+
 ## Notes
 
 - Root docs: `README.md`, `DONATIONS_SETUP.md`, `PERFORMANCE.md`, `MONITORING.md`.

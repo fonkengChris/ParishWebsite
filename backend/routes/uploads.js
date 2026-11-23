@@ -1,7 +1,8 @@
 import express from 'express';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
-import { authenticate, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requireAnyPermission } from '../middleware/auth.js';
+import { UPLOAD_RESOURCES } from '../utils/permissions.js';
 
 const router = express.Router();
 
@@ -44,10 +45,10 @@ const uploadToCloudinary = (buffer) =>
 
 /**
  * POST /api/uploads
- * Admin-only. Accepts a single `image` file (multipart/form-data), stores it in
+ * Anyone who manages a resource with images (UPLOAD_RESOURCES). Accepts a single `image` file (multipart/form-data), stores it in
  * Cloudinary and returns its public CDN URL.
  */
-router.post('/', authenticate, requireAdmin, (req, res) => {
+router.post('/', authenticate, requireAnyPermission(UPLOAD_RESOURCES), (req, res) => {
   if (!isConfigured()) {
     return res.status(500).json({
       message: 'Image uploads are not configured. Set CLOUDINARY_URL (or CLOUDINARY_CLOUD_NAME/API_KEY/API_SECRET) on the backend.'
